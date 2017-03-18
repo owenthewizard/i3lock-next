@@ -7,7 +7,7 @@ int main(int argc, char **argv)
 {
     if (argc != 3)
     {
-        fputs("Error: this program takes exactly two arguments.\n",stderr);
+        fputs("i3lock-next-helper: error: this program takes exactly two arguments.\n",stderr);
         return 1;
     }
 
@@ -17,7 +17,7 @@ int main(int argc, char **argv)
     Display *disp = XOpenDisplay(display_name);
     if (!disp)
     {
-        fprintf(stderr, "Can't open display %s!\n", display_name);
+        fprintf(stderr, "i3lock-next-helper: error: can't open display %s\n", display_name);
         return 1;
     }
 
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     Imlib_Image *im = imlib_create_image_from_drawable(1, 0, 0, width, height, 1);
     if (!im)
     {
-        fputs("Error: cannot grab image!\n", stderr);
+        fputs("i3lock-next-helper: error: couldn't grab image\n", stderr);
         return 1;
     }
 
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
     imlib_context_set_font(imlib_load_font(argv[2]));
     if (!imlib_context_get_font())
     {
-        fprintf(stderr, "Error: could not find font %s!\n", argv[2]);
+        fprintf(stderr, "i3lock-next-helper: error: couldn't find font %s\n", argv[2]);
         return 1;
     }
     int offset_w, offset_h, ignore_me;
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     Imlib_Image *lock = imlib_load_image("/usr/share/i3lock-next/lock.png");
     if (!lock)
     {
-        fputs("Error: could not find lock.png!\n", stderr);
+        fputs("i3lock-next-helper: error: couldn't find lock.png\n", stderr);
         return 1;
     }
     imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, width/2-40, height/2-40, 80, 80);
