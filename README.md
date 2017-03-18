@@ -4,6 +4,8 @@ i3lock-next is a bash script and C helper program much like [i3lock-fancy](https
 
 ![screenshot](screenshot.png)
 
+[Video](video.mp4)
+
 ## Dependencies
 
 - [i3lock-color](https://github.com/chrjguill/i3lock-color) - a fork of i3lock that supports custom ring colors
