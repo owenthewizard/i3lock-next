@@ -15,7 +15,7 @@ i3lock-next is a bash script and C helper program much like [i3lock-fancy](https
 
 ## Installation
 
-See [install.sh](install.sh).  
+See [install.sh](doc/install.sh).  
 Warning: install.sh is provided only for reference and should not be used.
 
 ## Usage
