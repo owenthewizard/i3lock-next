@@ -7,7 +7,7 @@ int main(int argc, char **argv)
 {
     if (argc != 3)
     {
-        fputs("i3lock-next-helper: error: this program takes exactly two arguments.\n",stderr);
+        fputs("i3lock-next-helper: error: this program takes exactly two arguments\n",stderr);
         return 1;
     }
 
@@ -47,7 +47,12 @@ int main(int argc, char **argv)
     imlib_text_draw_with_return_metrics(0, 0, "Type password to unlock.", &offset_w, &offset_h, &ignore_me, &ignore_me);
 
     imlib_context_set_image(im);
+    imlib_context_set_image(imlib_create_cropped_image(width/2, height/2, 100, 100));
+    imlib_context_set_image(imlib_create_cropped_scaled_image(0, 0, 100, 100, 3, 3));
+    float value, ignore_me_2;
+    imlib_image_query_pixel_hsva(2, 2, &ignore_me_2, &ignore_me_2, &value, &ignore_me);
 
+    imlib_context_set_image(im);
     imlib_context_set_color_modifier(imlib_create_color_modifier());
     imlib_modify_color_modifier_gamma(0.6);
     imlib_apply_color_modifier();
@@ -57,14 +62,23 @@ int main(int argc, char **argv)
     imlib_image_blur(1);
     imlib_context_set_image(imlib_create_cropped_scaled_image(0, 0, width/5, height/5, width, height));
 
-    imlib_text_draw(width/2-offset_w/2, height/1.5, "Type password to unlock.");
-
-    Imlib_Image *lock = imlib_load_image("/usr/share/i3lock-next/lock.png");
+    Imlib_Image *lock;
+    if (value*100 >= 60)
+    {
+        lock = imlib_load_image("/usr/share/i3lock-next/lock-dark.png");
+        imlib_context_set_color(0, 0, 0, 255);
+    }
+    else
+    {
+        lock = imlib_load_image("/usr/share/i3lock-next/lock-light.png");
+        imlib_context_set_color(255, 255, 255, 255);
+    }
     if (!lock)
     {
-        fputs("i3lock-next-helper: error: couldn't find lock.png\n", stderr);
+        fputs("i3lock-next-helper: error: couldn't load lock image\n", stderr);
         return 1;
     }
+    imlib_text_draw(width/2-offset_w/2, height/1.5, "Type password to unlock.");
     imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, width/2-40, height/2-40, 80, 80);
 
     imlib_save_image(argv[1]);
