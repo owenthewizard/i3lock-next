@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <X11/Xlib.h>
 #include <Imlib2.h>
+#include "config.h"
 
 int main(int argc, char **argv)
 {
@@ -65,12 +66,12 @@ int main(int argc, char **argv)
     Imlib_Image *lock;
     if (value*100 >= 60)
     {
-        lock = imlib_load_image("/usr/share/i3lock-next/lock-dark.png");
+        lock = imlib_load_image(PREFIX"/share/i3lock-next/lock-dark.png");
         imlib_context_set_color(0, 0, 0, 255);
     }
     else
     {
-        lock = imlib_load_image("/usr/share/i3lock-next/lock-light.png");
+        lock = imlib_load_image(PREFIX"/share/i3lock-next/lock-light.png");
         imlib_context_set_color(255, 255, 255, 255);
     }
     if (!lock)
