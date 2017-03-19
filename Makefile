@@ -37,7 +37,7 @@ install: all
 	install -m 755 -d $(DESTDIR)$(PREFIX)/bin
 	install -m 755 -d $(DESTDIR)$(LIBEXECDIR)/$(_PROGRAM)
 	install -m 755 -d $(DESTDIR)$(DATAROOTDIR)/$(_PROGRAM)
-	install -m 755 bin/$(_PROGRAM) $(DESTDIR)$(PREFIX)/bin/$(_PROGRAM)
+	install -m 755 scripts/$(_PROGRAM) $(DESTDIR)$(PREFIX)/bin/$(_PROGRAM)
 	install -m 755 $(PROGRAM) $(DESTDIR)$(LIBEXECDIR)/$(_PROGRAM)/$(PROGRAM)
 	install -m 644 data/* $(DESTDIR)$(DATAROOTDIR)/$(_PROGRAM)/
 

@@ -1,0 +1,44 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+PREFIX=/usr/local
+
+if [[ ${1} == "-h" ]] || [[ ${1} == "--help" ]]; then
+    cat <<EOF
+Usage: i3lock-next [-h|--help] <font> <size>
+
+Options:
+    -h, --help  Display this help text.
+
+    font        Font to to use, default sans.
+
+    size        Size of font, default 18.
+
+EOF
+    exit
+fi
+
+
+_font=${1:-Sans}
+_size=${2:-18}
+
+set -u
+
+_font=$(fc-match "${_font}" -f "%{file}\n" | cut -d'.' -f1)
+#_font=${_font%.ttf}
+
+readonly _random=${RANDOM}
+_image="/tmp/tmp.${_random}.png"
+
+trap 'rm -f ${_image}' EXIT
+
+${PREFIX}/libexec/i3lock-next/i3lock-next-helper ${_image} ${_font}/${_size}
+i3lock -n --textcolor=00000000 --insidecolor=0000001c --ringcolor=0000003e \
+        --linecolor=00000000 --keyhlcolor=ffffff80 --ringvercolor=ffffff00 \
+        --separatorcolor=22222260 --insidevercolor=ffffff1c \
+        --ringwrongcolor=ffffff55 --insidewrongcolor=ffffff1c \
+        -i ${_image}
+
+# vim: set tabstop=4 softtabstop=4 shiftwidth=4 expandtab:
