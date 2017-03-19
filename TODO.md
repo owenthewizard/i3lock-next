@@ -6,3 +6,4 @@
 - [ ] usage section in README
 - [x] proper Makefile
 - [ ] proper Makefile (autotools)
+- [ ] Arch PKGBUILD
