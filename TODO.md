@@ -1,6 +1,6 @@
 # TODO
 - [ ] use GNU gettext
-- [ ] cleanup code, improve readability
+- [x] cleanup code, improve readability
 - [x] use light/dark lock images depending on background
 - [x] add image demo
 - [x] usage section in README.md

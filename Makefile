@@ -1,17 +1,21 @@
-VERSION = 1.0
 ifndef PREFIX
   PREFIX = /usr/local
 endif
+
 ifndef DATAROOTDIR
   DATAROOTDIR = $(PREFIX)/share
 endif
+
 ifndef LIBEXECDIR
   LIBEXECDIR = $(PREFIX)/libexec
 endif
+
 CFLAGS = -std=gnu99 -O2 -Wall -lX11 -lImlib2
 LDFLAGS = $(CFLAGS)
+
 OBJS := $(sort $(wildcard src/*.c))
 OBJS := $(OBJS:.c=.o)
+
 PROGRAM = i3lock-next-helper
 _PROGRAM = i3lock-next
 
