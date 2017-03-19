@@ -3,7 +3,7 @@
 - [ ] cleanup code, improve readability
 - [x] use light/dark lock images depending on background
 - [x] add image demo
-- [ ] usage section in README
+- [x] usage section in README.md
 - [x] proper Makefile
 - [ ] proper Makefile (autotools)
 - [ ] Arch PKGBUILD

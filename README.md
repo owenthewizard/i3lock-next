@@ -23,4 +23,17 @@ make install
 
 ## Usage
 
-TODO
+```
+i3lock-next [-h|--help] <font> <size>
+
+Options:
+    -h, --help  Display this help text.
+
+    font        Font to to use, default sans.
+
+    size        Size of font, default 18.
+```
+Example:
+```
+i3lock-next "Open Sans" 18
+```
