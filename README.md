@@ -16,8 +16,10 @@ i3lock-next is a bash script and C helper program much like [i3lock-fancy](https
 ## Installation
 
 Edit src/config.h  
-    make
-    make install
+```
+make
+make install
+```
 
 ## Usage
 
