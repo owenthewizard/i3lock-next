@@ -44,7 +44,6 @@ int main(int argc, char **argv)
     XRRScreenResources *screen_r = XRRGetScreenResources(disp, DefaultRootWindow(disp));
     XRRCrtcInfo *screen;
     unsigned int widths[screen_r->ncrtc];
-    printf("%d\n", screen_r->ncrtc);
     for (int i = 0; i < screen_r->ncrtc; i++)
     {
         screen = XRRGetCrtcInfo(disp, screen_r, screen_r->crtcs[i]);
@@ -52,7 +51,6 @@ int main(int argc, char **argv)
             widths[i] = screen->height;
         else
             widths[i] = screen->width;
-        printf("%d\n%d\n", screen->width, screen->height);
     }
 
     //Take a screenshot
