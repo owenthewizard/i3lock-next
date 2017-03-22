@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <X11/Xlib.h>
 #include <Imlib2.h>
+//#include <xcb/randr.h>
+#include <X11/extensions/Xrandr.h>
 #include "config.h"
 
 int main(int argc, char **argv)
@@ -34,9 +36,24 @@ int main(int argc, char **argv)
     imlib_context_set_colormap(DefaultColormap(disp, DefaultScreen(disp)));
     imlib_context_set_drawable(DefaultRootWindow(disp));
 
-    //Get screen width/height
+    //Get total width/height
     unsigned int width = DefaultScreenOfDisplay(disp)->width;
     unsigned int height = DefaultScreenOfDisplay(disp)->height;
+
+    //Get width of each screen
+    XRRScreenResources *screen_r = XRRGetScreenResources(disp, DefaultRootWindow(disp));
+    XRRCrtcInfo *screen;
+    unsigned int widths[screen_r->ncrtc];
+    printf("%d\n", screen_r->ncrtc);
+    for (int i = 0; i < screen_r->ncrtc; i++)
+    {
+        screen = XRRGetCrtcInfo(disp, screen_r, screen_r->crtcs[i]);
+        if (screen->rotation == RR_Rotate_90 || screen->rotation == RR_Rotate_270)
+            widths[i] = screen->height;
+        else
+            widths[i] = screen->width;
+        printf("%d\n%d\n", screen->width, screen->height);
+    }
 
     //Take a screenshot
     Imlib_Image *im = imlib_create_image_from_drawable(1, 0, 0, width, height, 1);
@@ -58,9 +75,9 @@ int main(int argc, char **argv)
     }
 
     //Setup some variables for offsetting the text (it needs to be centered)
-    int offset_w, offset_h, ignore_me;
+    int offset_w, ignore_me;
     //Draw the text on our empty image and find out how many pixels we need to offset it by
-    imlib_text_draw_with_return_metrics(0, 0, "Type password to unlock.", &offset_w, &offset_h, &ignore_me, &ignore_me);
+    imlib_text_draw_with_return_metrics(0, 0, "Type password to unlock.", &offset_w, &ignore_me, &ignore_me, &ignore_me);
 
     //Set out screenshot as the working image
     imlib_context_set_image(im);
@@ -120,12 +137,19 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    //Draw the text
+    //Draw the text and lock(s)
     //TODO: GNU gettext
-    imlib_text_draw(width/2-offset_w/2, height/1.5, "Type password to unlock.");
+    //imlib_text_draw(width/2-offset_w/2, height/1.5, "Type password to unlock.");
+    //imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, width/2-40, height/2-40, 80, 80);
 
-    //Slap on the lock image
-    imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, width/2-40, height/2-40, 80, 80);
+    imlib_text_draw(widths[0]/2-offset_w/2, height/1.5, "Type password to unlock.");
+    imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, widths[0]/2-40, height/2-40, 80, 80);
+    for (int i = 1; i < screen_r->ncrtc; i++)
+        if (widths[i] != 0)
+        {
+            imlib_text_draw(widths[i]/2-offset_w/2+widths[i-1], height/1.5, "Type password to unlock.");
+            imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, widths[i]/2-40+widths[i-1], height/2-40, 80, 80);
+        }
 
     //Save the image
     imlib_save_image(argv[1]);

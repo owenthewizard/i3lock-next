@@ -10,7 +10,7 @@ ifndef LIBEXECDIR
   LIBEXECDIR = $(PREFIX)/libexec
 endif
 
-CFLAGS = -std=gnu99 -O2 -Wall -lX11 -lImlib2
+CFLAGS = -std=gnu99 -O2 -Wall -lX11 -lImlib2 -lXrandr
 LDFLAGS = $(CFLAGS)
 
 OBJS := $(sort $(wildcard src/*.c))
