@@ -35,12 +35,8 @@ int main(int argc, char **argv)
     imlib_context_set_drawable(DefaultRootWindow(disp));
 
     //Get screen width/height
-    unsigned int width = 0, height = 0;
-    for (int i = 0; i < ScreenCount(disp); i++)
-    {
-        width += ScreenOfDisplay(disp, i)->width;
-        height += ScreenOfDisplay(disp, i)->height;
-    }
+    unsigned int width = DefaultScreenOfDisplay(disp)->width;
+    unsigned int height = DefaultScreenOfDisplay(disp)->height;
 
     //Take a screenshot
     Imlib_Image *im = imlib_create_image_from_drawable(1, 0, 0, width, height, 1);
