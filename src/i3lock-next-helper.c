@@ -41,16 +41,23 @@ int main(int argc, char **argv)
     unsigned int height = DefaultScreenOfDisplay(disp)->height;
 
     //Get width of each screen
-    XRRScreenResources *screen_r = XRRGetScreenResources(disp, DefaultRootWindow(disp));
+    XRRScreenResources *screens = XRRGetScreenResources(disp, DefaultRootWindow(disp));
     XRRCrtcInfo *screen;
-    unsigned int widths[screen_r->ncrtc];
-    for (int i = 0; i < screen_r->ncrtc; i++)
+    unsigned int widths[screens->ncrtc];
+    unsigned int heights[screens->ncrtc];
+    for (int i = 0; i < screens->ncrtc; i++)
     {
-        screen = XRRGetCrtcInfo(disp, screen_r, screen_r->crtcs[i]);
+        screen = XRRGetCrtcInfo(disp, screens, screens->crtcs[i]);
         if (screen->rotation == RR_Rotate_90 || screen->rotation == RR_Rotate_270)
+        {
             widths[i] = screen->height;
+            heights[i] = screen-> width;
+        }
         else
+        {
             widths[i] = screen->width;
+            heights[i] = screen->height;
+        }
     }
 
     //Take a screenshot
@@ -140,13 +147,13 @@ int main(int argc, char **argv)
     //imlib_text_draw(width/2-offset_w/2, height/1.5, "Type password to unlock.");
     //imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, width/2-40, height/2-40, 80, 80);
 
-    imlib_text_draw(widths[0]/2-offset_w/2, height/1.5, "Type password to unlock.");
-    imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, widths[0]/2-40, height/2-40, 80, 80);
-    for (int i = 1; i < screen_r->ncrtc; i++)
+    imlib_text_draw(widths[0]/2-offset_w/2, heights[0]/1.5, "Type password to unlock.");
+    imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, widths[0]/2-40, heights[0]/2-40, 80, 80);
+    for (int i = 1; i < screens->ncrtc; i++)
         if (widths[i] != 0)
         {
-            imlib_text_draw(widths[i]/2-offset_w/2+widths[i-1], height/1.5, "Type password to unlock.");
-            imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, widths[i]/2-40+widths[i-1], height/2-40, 80, 80);
+            imlib_text_draw(widths[i]/2-offset_w/2+widths[i-1], heights[i]/1.5, "Type password to unlock.");
+            imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, widths[i]/2-40+widths[i-1], heights[i]/2-40, 80, 80);
         }
 
     //Save the image
