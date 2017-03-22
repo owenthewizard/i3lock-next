@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <X11/Xlib.h>
 #include <Imlib2.h>
-//#include <xcb/randr.h>
 #include <X11/extensions/Xrandr.h>
 #include "config.h"
 
@@ -68,6 +67,9 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    //Save the original screenshot
+    //Imlib_Image *original = imlib_context_get_image();
+
     //Work on a new empty image
     imlib_context_set_image(imlib_create_image(width, height));
 
@@ -84,23 +86,39 @@ int main(int argc, char **argv)
     //Draw the text on our empty image and find out how many pixels we need to offset it by
     imlib_text_draw_with_return_metrics(0, 0, "Type password to unlock.", &offset_w, &ignore_me, &ignore_me, &ignore_me);
 
-    //Set out screenshot as the working image
+    //Set up screenshot as the working image
     imlib_context_set_image(im);
 
     //Crop it down to 100x100 from center
-    imlib_context_set_image(imlib_create_cropped_image(width/2, height/2, 100, 100));
+    //imlib_context_set_image(imlib_create_cropped_image(width/2, height/2, 100, 100));
 
     //Scale it to 3x3, for some reason 1x1 will always have HSL of 0,0,0
-    imlib_context_set_image(imlib_create_cropped_scaled_image(0, 0, 100, 100, 3, 3));
+    //imlib_context_set_image(imlib_create_cropped_scaled_image(0, 0, 100, 100, 3, 3));
 
     //Setup some variables for the value of the center pixel
-    float value, ignore_me_2;
+    //float value, ignore_me_2;
 
     //Grab the center pixel's value
-    imlib_image_query_pixel_hsva(2, 2, &ignore_me_2, &ignore_me_2, &value, &ignore_me);
+    //imlib_image_query_pixel_hsva(2, 2, &ignore_me_2, &ignore_me_2, &value, &ignore_me);
+
+    float values[screens->ncrtc];
+    float ignore_me_2;
+    imlib_context_set_image(imlib_create_cropped_image(widths[0]/2-150, heights[0]/2-150, 300, 300));
+    imlib_context_set_image(imlib_create_cropped_scaled_image(0, 0, 300, 300, 3, 3));
+    imlib_image_query_pixel_hsva(2, 2, &ignore_me_2, &ignore_me_2, &values[0], &ignore_me);
+    imlib_context_set_image(im);
+    for (int i = 1; i < screens->ncrtc; i++)
+    {
+        imlib_context_set_image(imlib_create_cropped_image(widths[i]/2-150+widths[i-1], heights[i]/2-150+heights[i-1], 300, 300));
+        imlib_context_set_image(imlib_create_cropped_scaled_image(0, 0, 300, 300, 3, 3));
+        imlib_image_query_pixel_hsva(2, 2, &ignore_me_2, &ignore_me_2, &values[i], &ignore_me);
+        imlib_context_set_image(im);
+    }
+
+
 
     //Revert the image back to before we did any modifications
-    imlib_context_set_image(im);
+    //imlib_context_set_image(im);
 
     //Set up a color modifier
     imlib_context_set_color_modifier(imlib_create_color_modifier());
@@ -120,9 +138,13 @@ int main(int argc, char **argv)
     //Scale it back up
     imlib_context_set_image(imlib_create_cropped_scaled_image(0, 0, width/5, height/5, width, height));
 
+    //Save these changes
+    im = imlib_context_get_image();
+
     //Prepare to load the lock image
     Imlib_Image *lock;
 
+    /*
     if (value*100 >= 60) //We have a mostly light background
     {
         //Use dark lock image and black text
@@ -141,20 +163,57 @@ int main(int argc, char **argv)
         fputs("i3lock-next-helper: error: couldn't load lock image\n", stderr);
         return 1;
     }
+    */
 
     //Draw the text and lock(s)
     //TODO: GNU gettext
     //imlib_text_draw(width/2-offset_w/2, height/1.5, "Type password to unlock.");
     //imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, width/2-40, height/2-40, 80, 80);
 
+    //imlib_context_set_image(original);
+
+    if (values[0]*100 >= 60)
+    {
+        lock = imlib_load_image(PREFIX"/share/i3lock-next/lock-dark.png");
+        imlib_context_set_color(0, 0, 0, 255);
+    }
+    else
+    {
+        lock = imlib_load_image(PREFIX"/share/i3lock-next/lock-light.png");
+        imlib_context_set_color(255, 255, 255, 255);
+    }
+    if (!lock)
+    {
+        fputs("i3lock-next-helper: error: couldn't load lock image\n", stderr);
+        return 1;
+    }
+
     imlib_text_draw(widths[0]/2-offset_w/2, heights[0]/1.5, "Type password to unlock.");
     imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, widths[0]/2-40, heights[0]/2-40, 80, 80);
     for (int i = 1; i < screens->ncrtc; i++)
+    {
+        if (values[i]*100 >= 60)
+        {
+            lock = imlib_load_image(PREFIX"/share/i3lock-next/lock-dark.png");
+            imlib_context_set_color(0, 0, 0, 255);
+        }
+        else
+        {
+            lock = imlib_load_image(PREFIX"/share/i3lock-next/lock-light.png");
+            imlib_context_set_color(255, 255, 255, 255);
+        }
+        if (!lock)
+        {
+            fputs("i3lock-next-helper: error: couldn't load lock image\n", stderr);
+            return 1;
+        }
+
         if (widths[i] != 0)
         {
             imlib_text_draw(widths[i]/2-offset_w/2+widths[i-1], heights[i]/1.5, "Type password to unlock.");
             imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, widths[i]/2-40+widths[i-1], heights[i]/2-40, 80, 80);
         }
+    }
 
     //Save the image
     imlib_save_image(argv[1]);
