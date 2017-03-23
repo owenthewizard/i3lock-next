@@ -10,7 +10,8 @@ ifndef LIBEXECDIR
   LIBEXECDIR = $(PREFIX)/libexec
 endif
 
-CFLAGS = -std=gnu99 -O2 -Wall -lX11 -lImlib2
+# Thanks to SuprDewd - https://github.com/owenthewizard/i3lock-next/issues/4
+CFLAGS = -std=gnu99 -O2 -Wall -lX11 -lImlib2 -DPREFIX=\"$(PREFIX)\"
 LDFLAGS = $(CFLAGS)
 
 OBJS := $(sort $(wildcard src/*.c))
@@ -40,6 +41,8 @@ install: all
 	install -m 755 scripts/$(_PROGRAM) $(DESTDIR)$(PREFIX)/bin/$(_PROGRAM)
 	install -m 755 $(PROGRAM) $(DESTDIR)$(LIBEXECDIR)/$(_PROGRAM)/$(PROGRAM)
 	install -m 644 data/* $(DESTDIR)$(DATAROOTDIR)/$(_PROGRAM)/
+	# Thanks to SuprDewd - https://github.com/owenthewizard/i3lock-next/issues/4
+	sed -i 's_PREFIX=/usr/local_PREFIX=\$(PREFIX)_' $(DESTDIR)$(PREFIX)/bin/$(_PROGRAM)
 
 install-doc:
 	install -m 755 -d $(DESTDIR)$(DATAROOTDIR)/doc/$(_PROGRAM)
