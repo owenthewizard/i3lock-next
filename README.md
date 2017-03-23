@@ -30,7 +30,7 @@ make install PREFIX=/your/custom/prefix
 ## Usage
 
 ```
-i3lock-next [-h|--help] <font> <size>
+i3lock-next [-h|--help] [font] [size]
 
 Options:
     -h, --help  Display this help text.
@@ -42,4 +42,5 @@ Options:
 Example:
 ```
 i3lock-next "Open Sans" 18
+i3lock-next # Defaults to Sans/18
 ```
