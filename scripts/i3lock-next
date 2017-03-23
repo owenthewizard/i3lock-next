@@ -26,8 +26,8 @@ _size=${2:-18}
 
 set -u
 
-_font=$(fc-match "${_font}" -f "%{file}\n" | cut -d'.' -f1)
-#_font=${_font%.ttf}
+_font=$(fc-match "${_font}" -f "%{file}\n")
+_font=${_font%.*}
 
 readonly _random=${RANDOM}
 _image="/tmp/tmp.${_random}.png"
