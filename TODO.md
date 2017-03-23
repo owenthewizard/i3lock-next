@@ -8,3 +8,4 @@
 - [ ] proper Makefile (autotools)
 - [ ] Arch PKGBUILD
 - [ ] use xcb instead of Xlib
+- [x] be and idiot and mess up pull requests and branches

@@ -2,6 +2,8 @@
 
 i3lock-next is a bash script and C helper program much like [i3lock-fancy](https://github.com/meskarune/i3lock-fancy). i3lock-next aims to be much faster by using [Imlib2](https://docs.enlightenment.org/api/imlib2/html/index.html) rather than ImageMagick, and being written (mostly) in C.
 
+#### Now with support for multiple monitors!
+
 ![screenshot](screenshot.png)
 
 [Video](video.mp4)
@@ -12,6 +14,7 @@ i3lock-next is a bash script and C helper program much like [i3lock-fancy](https
 - Imlib2
 - bash
 - fontconfig
+- libXrandr
 
 ## Installation
 
