@@ -58,6 +58,7 @@ int main(int argc, char **argv)
             heights[i] = screen->height;
         }
     }
+    free(screen);
 
     //Take a screenshot
     Imlib_Image *im = imlib_create_image_from_drawable(1, 0, 0, width, height, 1);
@@ -85,6 +86,7 @@ int main(int argc, char **argv)
     imlib_text_draw_with_return_metrics(0, 0, "Type password to unlock.", &offset_w, &ignore_me, &ignore_me, &ignore_me);
 
     //Work on the screenshot, discarding the old image
+    imlib_free_image_and_decache();
     imlib_context_set_image(im);
 
     //Setup some value to figure out wether we need to draw light or dark icons and text
@@ -180,8 +182,12 @@ int main(int argc, char **argv)
             imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, widths[i]/2-40+widths[i-1], heights[i]/2-40, 80, 80);
         }
     }
+    free(screens);
+    free(lock);
 
     //Save the image
     imlib_save_image(argv[1]);
+    free(im);
+    free(disp);
 }
 // vim: set tabstop=4 softtabstop=4 shiftwidth=4 expandtab:
