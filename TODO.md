@@ -7,3 +7,4 @@
 - [x] proper Makefile
 - [ ] proper Makefile (autotools)
 - [ ] Arch PKGBUILD
+- [ ] use xcb instead of Xlib
