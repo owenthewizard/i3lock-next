@@ -45,17 +45,25 @@ int main(int argc, char **argv)
     unsigned int heights[screens->ncrtc];
     for (int i = 0; i < screens->ncrtc; i++)
     {
+        #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
         screen = XRRGetCrtcInfo(disp, screens, screens->crtcs[i]);
-        //Check for rotation
-        if (screen->rotation == RR_Rotate_90 || screen->rotation == RR_Rotate_270)
+        if (screen->height != 0 && screen->width != 0)
         {
-            widths[i] = screen->height;
-            heights[i] = screen-> width;
+            if (screen->rotation == RR_Rotate_90 || screen->rotation == RR_Rotate_270)
+            {
+                widths[i] = screen->height;
+                heights[i] = screen-> width;
+            }
+            else
+            {
+                widths[i] = screen->width;
+                heights[i] = screen->height;
+            }
         }
         else
         {
-            widths[i] = screen->width;
-            heights[i] = screen->height;
+            widths[i] = -1;
+            heights[i] = -1;
         }
     }
     free(screen);
@@ -108,10 +116,13 @@ int main(int argc, char **argv)
     //Repeat the above for each monitor
     for (int i = 1; i < screens->ncrtc; i++)
     {
-        imlib_context_set_image(imlib_create_cropped_image(widths[i]/2-150+widths[i-1], heights[i]/2-150+heights[i-1], 300, 300));
-        imlib_context_set_image(imlib_create_cropped_scaled_image(0, 0, 300, 300, 3, 3));
-        imlib_image_query_pixel_hsva(2, 2, &ignore_me_2, &ignore_me_2, &values[i], &ignore_me);
-        imlib_context_set_image(im);
+        if (widths[i] != -1 && heights[i] != -1)
+        {
+            imlib_context_set_image(imlib_create_cropped_image(widths[i]/2-150+widths[i-1], heights[i]/2-150+heights[i-1], 300, 300));
+            imlib_context_set_image(imlib_create_cropped_scaled_image(0, 0, 300, 300, 3, 3));
+            imlib_image_query_pixel_hsva(2, 2, &ignore_me_2, &ignore_me_2, &values[i], &ignore_me);
+            imlib_context_set_image(im);
+        }
     }
 
     //Set up a color modifier
@@ -133,7 +144,7 @@ int main(int argc, char **argv)
     imlib_context_set_image(imlib_create_cropped_scaled_image(0, 0, width/5, height/5, width, height));
 
     //Save these changes
-    im = imlib_context_get_image();
+    //im = imlib_context_get_image();
 
     //Prepare to load the lock image
     Imlib_Image *lock;
@@ -161,23 +172,23 @@ int main(int argc, char **argv)
     //Draw the lock and text on the other monitors
     for (int i = 1; i < screens->ncrtc; i++)
     {
-        if (values[i]*100 >= 60)
+        if (widths[i] != -1 && heights[i] != -1)
         {
-            lock = imlib_load_image(PREFIX"/share/i3lock-next/lock-dark.png");
-            imlib_context_set_color(0, 0, 0, 255);
-        }
-        else
-        {
-            lock = imlib_load_image(PREFIX"/share/i3lock-next/lock-light.png");
-            imlib_context_set_color(255, 255, 255, 255);
-        }
-        if (!lock)
-        {
-            fputs("i3lock-next-helper: error: couldn't load lock image\n", stderr);
-            return 1;
-        }
-        if (widths[i] != 0) //0x0 monitors aren't real, so don't draw on them
-        {
+            if (values[i]*100 >= 60)
+            {
+                lock = imlib_load_image(PREFIX"/share/i3lock-next/lock-dark.png");
+                imlib_context_set_color(0, 0, 0, 255);
+            }
+            else
+            {
+                lock = imlib_load_image(PREFIX"/share/i3lock-next/lock-light.png");
+                imlib_context_set_color(255, 255, 255, 255);
+            }
+            if (!lock)
+            {
+                fputs("i3lock-next-helper: error: couldn't load lock image\n", stderr);
+                return 1;
+            }
             imlib_text_draw(widths[i]/2-offset_w/2+widths[i-1], heights[i]/1.5, "Type password to unlock.");
             imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, widths[i]/2-40+widths[i-1], heights[i]/2-40, 80, 80);
         }
