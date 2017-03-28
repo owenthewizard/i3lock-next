@@ -11,7 +11,8 @@ ifndef LIBEXECDIR
 endif
 
 # Thanks to SuprDewd - https://github.com/owenthewizard/i3lock-next/issues/4
-CFLAGS = -std=gnu99 -O2 -Wall -lX11 -lImlib2 -lXrandr -DPREFIX=\"$(PREFIX)\"
+CFLAGS = -std=gnu99 -O2 -Wall -pipe -fomit-frame-pointer -lX11 -lImlib2 -lXrandr -DPREFIX=\"$(PREFIX)\"
+#CFLAGS = -std=gnu99 -O0 -Wall -pipe -g -lX11 -lImlib2 -lXrandr -DPREFIX=\"$(PREFIX)\"
 LDFLAGS = $(CFLAGS)
 
 OBJS := $(sort $(wildcard src/*.c))
