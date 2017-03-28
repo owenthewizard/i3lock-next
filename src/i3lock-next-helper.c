@@ -3,7 +3,6 @@
 #include <X11/Xlib.h>
 #include <Imlib2.h>
 #include <X11/extensions/Xrandr.h>
-#include <xcb/xcb.h>
 
 int main(int argc, char **argv)
 {
