@@ -1,169 +1,230 @@
+/*
+ * i3lock-next-helper.c
+ * This program takes a screenshot and blurs it for use with the
+ * i3lock-next script.
+ *
+ */
+
+/* Standard */
 #include <stdlib.h>
 #include <stdio.h>
+
+/* X11 */
 #include <X11/Xlib.h>
-#include <Imlib2.h>
 #include <X11/extensions/Xrandr.h>
 
-int main(int argc, char **argv)
+/* Imlib2 */
+#include <Imlib2.h>
+
+int main(int argc, const char **argv)
 {
-    //We only take 2 arguments
+	// NOTE: argv[1] is filename and argv[2] is font path
+
+    // main prompt (TODO: GNU gettext here?)
+    char prompt[]         =  "Type password to unlock";
+
+    // error messages
+    char i3lockerr[]      =  "i3lock-next-helper: error:";
+    char wrongargs[]      =  "incorrect argnument number";
+    char disperr[]        =  "can't open display";
+    char screenshoterr[]  =  "can't take screenshot";
+    char fonterr[]        =  "can't find font";
+    char lockimgerr[]     =  "can't load lock image";
+
+    // only take two arguments
     if (argc != 3)
     {
-        fputs("i3lock-next-helper: error: this program takes exactly two arguments\n",stderr);
+        fprintf(stderr, "%s %s\n", i3lockerr, wrongargs);
         return 1;
     }
 
-    //Get $DISPLAY
-    const char *display_name = getenv("DISPLAY");
+    // get current display or default to display :0
+	const char *disp_name = getenv("DISPLAY");
 
-    //Default to :0
-    if (!display_name)
-        display_name = ":0";
+    if (disp_name == NULL)
+        disp_name = ":0";
 
-    //Attempt to open the display
-    Display *disp = XOpenDisplay(display_name);
-    if (!disp)
+    // attempt to open the display
+	Display *disp = XOpenDisplay(disp_name);
+
+    if (disp == NULL)
     {
-        fprintf(stderr, "i3lock-next-helper: error: can't open display %s\n", display_name);
-        return 1;
+		// error: can't open display
+        fprintf(stderr, "%s %s %s\n", i3lockerr, disperr, disp_name);
+        return 2;
     }
 
     Window root = DefaultRootWindow(disp);
     Screen *dScreen = DefaultScreenOfDisplay(disp);
     int dScreenN = DefaultScreen(disp);
 
-    //Set Imlib2's context
+    // set Imlib2 context
     imlib_context_set_display(disp);
     imlib_context_set_visual(DefaultVisual(disp, dScreenN));
     imlib_context_set_colormap(DefaultColormap(disp, dScreenN));
     imlib_context_set_drawable(root);
 
-    //Get total width/height
-    unsigned int width = dScreen->width;
-    unsigned int height = dScreen->height;
+    // get total width/height of default screen
+    unsigned int dw = dScreen->width;
+    unsigned int dh = dScreen->height;
 
-    //Get width/height of each monitor
-    int n, ignore_me;
+	// set number of monitors
+    int n = 1;
     XRRMonitorInfo *m = XRRGetMonitors(disp, root, 1, &n);
     XRRFreeMonitors(m);
+
+	// for each monitor, determine the width and height
     unsigned int widths[n];
     unsigned int heights[n];
     XRRScreenResources *screens = XRRGetScreenResources(disp, root);
-    XRRCrtcInfo *screen;
+    XRRCrtcInfo *screen = NULL;
+
     for (int i = 0; i < n; i++)
     {
         screen = XRRGetCrtcInfo(disp, screens, screens->crtcs[i]);
         widths[i] = screen->width;
         heights[i] = screen->height;
-        printf("Monitor %d: %ux%u\n", i, screen->width, screen->height);
     }
-    XRRFreeScreenResources(screens);
-    #ifdef screen
-      XRRFreeCrtcInfo(screen);
-    #endif
 
-    //Take a screenshot
-    Imlib_Image *im = imlib_create_image_from_drawable(1, 0, 0, width, height, 1);
+    XRRFreeScreenResources(screens);
+	XRRFreeCrtcInfo(screen);
+
+    // take a screenshot of the full screen
+    Imlib_Image *im = imlib_create_image_from_drawable(1, 0, 0, dw, dh, 1);
+
     if (!im)
     {
-        fputs("i3lock-next-helper: error: couldn't grab image\n", stderr);
-        return 1;
+		// coudln't take screenshot
+        fprintf(stderr, "%s %s\n", i3lockerr, screenshoterr);
+		free(disp);
+        return 3;
     }
 
-    //Work on a new empty image
-    imlib_context_set_image(imlib_create_image(width, height));
+    // work on a new empty image
+    imlib_context_set_image(imlib_create_image(dw, dh));
 
-    //Load the font, given like so: /usr/share/fonts/open-sans/OpenSans-Regular/18
+    // load the font, given like so:
+    // /usr/share/fonts/open-sans/OpenSans-Regular/18
     imlib_context_set_font(imlib_load_font(argv[2]));
+
     if (!imlib_context_get_font())
     {
-        fprintf(stderr, "i3lock-next-helper: error: couldn't find font %s\n", argv[2]);
-        return 1;
+        // no font loaded
+        fprintf(stderr, "%s %s %s\n", i3lockerr, fonterr, argv[2]);
+		free(im);
+		free(disp);
+        return 4;
     }
 
-    //Setup some variables for offsetting the text (it needs to be centered)
-    int offset_w;
+    // declare a  variable for offsetting the text
+    int offset_w = 0;
 
-    //Draw the text on our empty image and find out how many pixels we need to offset it by
-    imlib_text_draw_with_return_metrics(0, 0, "Type password to unlock.", &offset_w, &ignore_me, &ignore_me, &ignore_me);
+	// dummy varibles for information we don't need
+	int dummy = 0;
+	float dummy2 = 0;
+
+    // draw the text on our empty image and find out how many pixels we
+    // need to offset it by
+    imlib_text_draw_with_return_metrics(0, 0, prompt, &offset_w, &dummy, &dummy, &dummy);
 
     //Work on the screenshot, discarding the old image
     imlib_free_image_and_decache();
     imlib_context_set_image(im);
 
-    //Setup some value to figure out wether we need to draw light or dark icons and text
-    float values[n], ignore_me_2;
+    // setup some value to figure out wether we need to draw light or
+	// dark icons and text
+    float values[n];
 
-    //Crop the image to 300/300 (from center)
+    // crop the image to 300/300 (from center)
     imlib_context_set_image(imlib_create_cropped_image(widths[0]/2-150, heights[0]/2-150, 300, 300));
 
-    //Scale the image to 3x3
+    // scale the image to 3x3
     imlib_context_set_image(imlib_create_cropped_scaled_image(0, 0, 300, 300, 3, 3));
 
-    //Grab the center pixel's value (doesn't work with 1x1 for some reason...)
-    imlib_image_query_pixel_hsva(2, 2, &ignore_me_2, &ignore_me_2, &values[0], &ignore_me);
+    // grab the center pixel's value (doesn't work with 1x1 for some reason...)
+    imlib_image_query_pixel_hsva(2, 2, &dummy2, &dummy2, &values[0], &dummy);
 
-    //Discard modifications, back to the screenshot
+    // discard modifications, back to the screenshot
     imlib_free_image_and_decache();
     imlib_context_set_image(im);
 
-    //Repeat the above for each monitor
+    // repeat the above for each monitor
     for (int i = 1; i < n; i++)
     {
         imlib_context_set_image(imlib_create_cropped_image(widths[i]/2-150+widths[i-1], heights[i]/2-150+heights[i-1], 300, 300));
         imlib_context_set_image(imlib_create_cropped_scaled_image(0, 0, 300, 300, 3, 3));
-        imlib_image_query_pixel_hsva(2, 2, &ignore_me_2, &ignore_me_2, &values[i], &ignore_me);
+        imlib_image_query_pixel_hsva(2, 2, &dummy2, &dummy2, &values[i], &dummy);
         imlib_context_set_image(im);
     }
 
-    //Set up a color modifier
+    // set up a color modifier
     imlib_context_set_color_modifier(imlib_create_color_modifier());
 
-    //Darken the image to 60% brightness
-    imlib_modify_color_modifier_gamma(0.6);
+    // darken the image to 45% brightness
+    imlib_modify_color_modifier_gamma(0.45);
     imlib_apply_color_modifier();
     imlib_free_color_modifier();
 
-    //Scale the image down to 20%
-    imlib_context_set_image(imlib_create_cropped_scaled_image(0, 0, width, height, width/5, height/5));
+    // scale the image down to 20%
+    imlib_context_set_image(imlib_create_cropped_scaled_image(0, 0, dw, dh, dw/5, dh/5));
 
-    //Blur it a few times
+    // blur it a few times
     imlib_image_blur(1);
     imlib_image_blur(1);
     imlib_image_blur(1);
 
-    //Scale it back up
-    imlib_context_set_image(imlib_create_cropped_scaled_image(0, 0, width/5, height/5, width, height));
+    // scale it back up
+    imlib_context_set_image(imlib_create_cropped_scaled_image(0, 0, dw/5, dh/5, dw, dh));
 
-    //Save these changes
+    // save these changes
     //im = imlib_context_get_image();
 
-    //Prepare to load the lock image
+    // prepare to load the lock image
     Imlib_Image *lock;
 
-    //Draw the lock and text on the first monitor
-    //TODO: GNU gettext
-    if (values[0]*100 >= 60) //Rather light background
+    // determine which lock image to load for the first monitor
+    if (values[0]*100 >= 60)
     {
+		// monitor is bright
         lock = imlib_load_image(PREFIX"/share/i3lock-next/lock-dark.png");
         imlib_context_set_color(0, 0, 0, 255);
     }
-    else //Rather dark background
+    else
     {
+		// monitor is dark
         lock = imlib_load_image(PREFIX"/share/i3lock-next/lock-light.png");
         imlib_context_set_color(255, 255, 255, 255);
     }
+
+	// couldn't load lock
     if (!lock)
     {
-        fputs("i3lock-next-helper: error: couldn't load lock image\n", stderr);
-        return 1;
+        fprintf(stderr, "%s %s\n", i3lockerr, lockimgerr);
+		free(im);
+		free(disp);
+		imlib_free_font();
+		imlib_free_image_and_decache();
+        return 3;
     }
-    imlib_text_draw(widths[0]/2-offset_w/2, heights[0]/1.5, "Type password to unlock.");
-    imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, widths[0]/2-40, heights[0]/2-40, 80, 80);
 
-    //Draw the lock and text on the other monitors
+	// define variables for prompt string location on monitor
+	int promptx = widths[0] / 2 - offset_w / 2;
+	int prompty = heights[0] / 1.5;
+
+	// draw prompt just below the centre of the monitor
+    imlib_text_draw(promptx, prompty, prompt);
+
+	// define variables for location of lock image on monitor
+	int lockx = widths[0] / 2 - 40;
+	int locky = heights[0] / 2 - 40;
+
+	// draw lock image at centre on monitor
+    imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, lockx, locky, 80, 80);
+
+    // draw the lock and text on the other monitors (if they exist)
     for (int i = 1; i < n; i++)
     {
+		// determine which lock image to load based on monitor colour
         if (values[i]*100 >= 60)
         {
             lock = imlib_load_image(PREFIX"/share/i3lock-next/lock-dark.png");
@@ -174,21 +235,41 @@ int main(int argc, char **argv)
             lock = imlib_load_image(PREFIX"/share/i3lock-next/lock-light.png");
             imlib_context_set_color(255, 255, 255, 255);
         }
+
         if (!lock)
         {
-            fputs("i3lock-next-helper: error: couldn't load lock image\n", stderr);
-            return 1;
+			// couldn't load lock image
+            fprintf(stderr, "%s %s\n", i3lockerr, lockimgerr);
+			free(im);
+			free(disp);
+			imlib_free_font();
+			imlib_free_image_and_decache();
+            return 3;
         }
-        imlib_text_draw(widths[i]/2-offset_w/2+widths[i-1], heights[i]/1.5, "Type password to unlock.");
-        imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, widths[i]/2-40+widths[i-1], heights[i]/2-40, 80, 80);
-    }
-    imlib_free_font();
-    free(lock);
 
-    //Save the image
+		// set variables for prompt string location on monitor
+		promptx = widths[i] / 2 - offset_w / 2 + widths[i - 1];
+		prompty = heights[i] / 1.5;
+
+		// draw prompt string just below the centre of the monitor
+        imlib_text_draw(promptx, prompty, prompt);
+
+		// set variables for lock image location on monitor
+		lockx = widths[i] / 2 - 40 + widths[i - 1];
+		locky = heights[i] / 2 - 40;
+
+		// draw lock image at the centre of the monitor
+        imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, lockx, locky, 80, 80);
+    }
+
+    // save the image and cleanup
     imlib_save_image(argv[1]);
-    imlib_free_image_and_decache();
-    free(im);
-    free(disp);
+
+	free(im);
+	free(lock);
+	free(disp);
+	imlib_free_font();
+	imlib_free_image_and_decache();
+
+    return 0;
 }
-// vim: set tabstop=4 softtabstop=4 shiftwidth=4 expandtab:
