@@ -13,22 +13,25 @@ PREFIX=/usr/local
 # display help text then exit (on -h or --help flags as arg 1)
 if [[ ${1} == "-h" ]] || [[ ${1} == "--help" ]]; then
 	cat <<EOF
-Usage: i3lock-next [-h|--help] <font> <size>
+Usage: i3lock-next [-h|--help] [prompt] [font] [size]
 
 Options:
     -h, --help  Display this help text.
 
+	prompt      Prompt string to display, default is none.
+
     font        Font to to use, default is Sans.
 
-    size        Size of font, default 18.
+    size        Size of font, default is 18.
 
 EOF
 	exit
 fi
 
 # set user-defined font and fontsize or use default
-_font=${1:-Sans}
-_size=${2:-18}
+_prompt=${1:-}
+_font=${2:-Sans}
+_size=${3:-18}
 
 # set script to treat unset variables as an error
 set -u
@@ -46,7 +49,7 @@ trap 'rm -f ${_image}' EXIT
 
 # call i3lock-next-helper (variable to keep lines below 72 charactters)
 _i3lock_next_helper=${PREFIX}/libexec/i3lock-next/i3lock-next-helper
-$_i3lock_next_helper ${_image} "${_font}"/"${_size}"
+$_i3lock_next_helper ${_image} "${_font}"/"${_size}" "${_prompt}"
 
 # now call i3lock (should have i3lock-color installed)
 #  - with custom colours (such as fully transparent text - text is
