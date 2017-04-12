@@ -43,11 +43,13 @@ LIBS = -lX11 -lXrandr -lImlib2
 CFLAGS += -DPREFIX=\"$(PREFIX)\"
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@echo Compiling $<
 	@mkdir -p $(OBJ_DIR)
 	@$(CC) -c -o $@ $< $(CFLAGS) $(LIBS)
 
 $(TARGET): $(OBJ)
 	@mkdir -p $(BIN_DIR)
+	@echo Linking $^
 	@$(CC) -o $(BIN_DIR)/$@ $^ $(CFLAGS) $(LIBS)	
 	@echo Build complete
 
@@ -55,19 +57,19 @@ $(TARGET): $(OBJ)
 
 ## build and install everything (including scripts/i3lock-next and data)
 ## (Thanks SuprDewd - see issue #4)
-install: $(PROGRAM)
+install:
 	@echo Stripping unneeded symbols from binary
-	@strip --strip-unneeded $(BIN_DIR)/$@
+	@strip --strip-unneeded $(BIN_DIR)/$(TARGET)
 	@install -m 755 -d $(DESTDIR)$(PREFIX)/bin
-	@install -m 755 -d $(DESTDIR)$(PREFIX)/$(SCRIPT)
-	@install -m 755 -d $(DESTDIR)$(PREFIX)/$(SCRIPT)
+	@install -m 755 -d $(DESTDIR)$(LIBEXECDIR)/$(SCRIPT)
+	@install -m 755 -d $(DESTDIR)$(DATAROOTDIR)/$(SCRIPT)
 	@echo Installing script, binary, and data
 	@install -m 755 scripts/$(SCRIPT) $(DESTDIR)$(PREFIX)/bin/$(SCRIPT)
 	@install -m 755 $(BIN_DIR)/$(TARGET) $(DESTDIR)$(LIBEXECDIR)/$(SCRIPT)/$(TARGET)
 	@install -m 644 data/* $(DESTDIR)$(DATAROOTDIR)/$(SCRIPT)/
 	@echo Replacing PREFIX in i3lock-next script
-	@sed -i 's_PREFIX=/usr/local_PREFIX-\$(PREFIX)_' $(DESTDIR)$(PREFIX)/bin/$(SCRIPT)
-	@echo Install complete
+	@sed -i 's_PREFIX=/usr/local_PREFIX=\$(PREFIX)_' $(DESTDIR)$(PREFIX)/bin/$(SCRIPT)
+	@echo Install to $(DESTDIR)$(PREFIX) complete
 
 ## uninstall everything (for normal install only)
 uninstall:
@@ -77,8 +79,7 @@ uninstall:
 	@rm -r $(DESTDIR)$(LIBEXECDIR)/$(SCRIPT)
 	@rm -r $(DESTDIR)$(DATAROOTDIR)/$(SCRIPT)
 	@echo Uninstall complete
-	@echo NOTE: empty directories may exist if you had nothing installed
-	@echo       in $(DESTDIR)$(PREFIX)
+	@echo NOTE: empty directories may exist if you had nothing installed in $(DESTDIR)$(PREFIX)
 
 ## create a build for use with gdb
 debug: CFLAGS += -ggdb -Werror -pedantic-errors
