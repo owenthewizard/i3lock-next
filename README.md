@@ -25,7 +25,7 @@ $ make
 $ make install
 ```
 
-To use a custom prefix:
+To use a custom prefix for the installation directory:
 
 ```
 $ make install PREFIX=/your/custom/prefix
@@ -34,30 +34,32 @@ $ make install PREFIX=/your/custom/prefix
 ## Usage
 
 ```
-i3lock-next [-h|--help] [font] [size]
+i3lock-next [-h|--help] [prompt] [font] [size]
 
 Options:
     -h, --help  Display this help text.
 
-    font        Font to to use, default Sans.
+	prompt      Prompt string to display, default is none.
 
-    size        Size of font, default 18.
+    font        Font to to use, default is Sans.
+
+    size        Size of font, default is 18.
 ```
 
-### Example:
+### Examples
 
-##### Custom Font:
+**Custom Font and Prompt:**
 
 ```
-$ i3lock-next "DejaVu Serif" 18
+$ i3lock-next "DejaVu Sans Mono" 24 "Input password"
 ```
 
-![screenshot: custom font](media/screenshot-custom_font.png)
+![screenshot: custom font and prompt](media/screenshot-custom.png)
 
-##### Default Font:
+**Default Prompt (None):**
 
 ```
 $ i3lock-next
 ```
 
-![screenshot: default font](media/screenshot-main.png)
+![screenshot: default font](media/screenshot-default.png)
