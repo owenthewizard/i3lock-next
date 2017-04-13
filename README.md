@@ -6,7 +6,7 @@
 
 ![screenshot: main](media/screenshot-main.png)
 
-![video: usage](media/video-usage.mp4)
+[video: usage](media/video-usage.mkv)
 
 ## Dependencies
 
@@ -37,13 +37,13 @@ $ make install PREFIX=/your/custom/prefix
 i3lock-next [-h|--help] [prompt] [font] [size]
 
 Options:
-    -h, --help  Display this help text.
+	-h, --help  Display this help text.
 
 	prompt      Prompt string to display, default is none.
 
-    font        Font to to use, default is Sans.
+	font        Font to to use, default is Sans.
 
-    size        Size of font, default is 18.
+	size        Size of font, default is 18.
 ```
 
 ### Examples
@@ -51,7 +51,7 @@ Options:
 **Custom Font and Prompt:**
 
 ```
-$ i3lock-next "DejaVu Sans Mono" 24 "Input password"
+$ i3lock-next "Input password" "DejaVu Sans Mono" 24
 ```
 
 ![screenshot: custom font and prompt](media/screenshot-custom.png)
