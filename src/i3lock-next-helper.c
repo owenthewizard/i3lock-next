@@ -125,13 +125,9 @@ int main(int argc, const char **argv)
 	// declare a variable for offsetting the text
 	int offset_w = 0;
 
-	// dummy varibles for information we don't need
+	// declare dummy varibles for information we don't need
 	int dum = 0;
 	float dum2 = 0;
-
-	// setup some array of values to figure out whether we need to draw
-	// light or dark icons and text
-	float values[n];
 
 	// draw the text on our empty image and find out how many pixels we
 	// need to offset it by
@@ -151,12 +147,13 @@ int main(int argc, const char **argv)
 	Imlib_Image *c = imlib_create_cropped_image(tl, tr, 300, 300);
 	imlib_context_set_image(c);
 
-	// crop the image to 300x300 (around center)
-	imlib_context_set_image(imlib_create_cropped_image(tl, tr, 300, 300));
-
 	// rescale to 3x3 and change context
 	c = imlib_create_cropped_scaled_image(0, 0, 300, 300, 3, 3);
 	imlib_context_set_image(c);
+
+	// setup some array of values to figure out whether we need to draw
+	// light or dark icons and text
+	float values[n];
 
 	// grab the centre pixel value (doesn't work with 1x1 for some reason)
 	imlib_image_query_pixel_hsva(2, 2, &dum2, &dum2, &values[0], &dum);
@@ -192,8 +189,8 @@ int main(int argc, const char **argv)
 	// set up a color modifier
 	imlib_context_set_color_modifier(imlib_create_color_modifier());
 
-	// darken the image to 60% brightness
-	imlib_modify_color_modifier_gamma(0.6);
+	// darken the image to 50% gamma
+	imlib_modify_color_modifier_gamma(0.5);
 	imlib_apply_color_modifier();
 	imlib_free_color_modifier();
 
@@ -256,7 +253,7 @@ int main(int argc, const char **argv)
 	for (int i = 1; i < n; i++)
 	{
 		// determine which lock image to load based on monitor colour
-		if (values[i]*100 >= 50)
+		if (values[i] * 100 >= 50)
 		{
 			lock = imlib_load_image(PREFIX"/share/i3lock-next/lock-dark.png");
 			imlib_context_set_color(0, 0, 0, 255);
