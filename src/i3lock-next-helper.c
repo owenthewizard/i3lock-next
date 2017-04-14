@@ -17,6 +17,16 @@
 /* Imlib2 */
 #include <Imlib2.h>
 
+/* Debugging Messages */
+#ifdef DEBUG
+	#define D_PRINTF(fmt, ...) fprintf(stderr, "DEBUG: %s: %d: %s(): " fmt, \
+	                                   __FILE__, __LINE__, __func__,        \
+									   __VA_ARGS__);
+#else
+	#define D_PRINTF(fmt, ...) do{ } while (0)
+#endif
+
+
 int main(int argc, const char **argv)
 {
 	// NOTE: argv[1] is filename, argv[2] is font path, argv[3] is prompt
@@ -40,9 +50,15 @@ int main(int argc, const char **argv)
 	// set main prompt (default: none)
 	const char *prompt = NULL;
 	if (argc != 4)
+	{
 		prompt  =  "";
+		D_PRINTF("Prompt: %s\n", prompt);
+	}
 	else
+	{
 		prompt  = argv[3];
+		D_PRINTF("Prompt: %s\n", prompt);
+	}
 
 
 	// get current display or default to display :0
@@ -51,6 +67,7 @@ int main(int argc, const char **argv)
 		disp_name = ":0";
 
 	// attempt to open the display
+	D_PRINTF("Attempting to get information for display %s\n", disp_name);
 	Display *disp = XOpenDisplay(disp_name);
 
 	if (disp == NULL)
@@ -73,23 +90,30 @@ int main(int argc, const char **argv)
 	// get total width/height of default screen
 	unsigned int dw = dScreen->width;
 	unsigned int dh = dScreen->height;
+	D_PRINTF("Full screen size: %dx%d\n", dw, dh);
 
 	// set number of monitors
 	int n = 1;
 	XRRMonitorInfo *m = XRRGetMonitors(disp, root, 1, &n);
 	XRRFreeMonitors(m);
 
-	// for each monitor, determine the width and height
+	// for each monitor, determine the width, height, and position
 	unsigned int widths[n];
 	unsigned int heights[n];
+	unsigned int xcoords[n];
+	unsigned int ycoords[n];
 	XRRScreenResources *screens = XRRGetScreenResources(disp, root);
 	XRRCrtcInfo *screen = NULL;
 
 	for (int i = 0; i < n; i++)
 	{
-		screen = XRRGetCrtcInfo(disp, screens, screens->crtcs[i]);
-		widths[i] = screen->width;
+		screen     = XRRGetCrtcInfo(disp, screens, screens->crtcs[i]);
+		widths[i]  = screen->width;
 		heights[i] = screen->height;
+		xcoords[i] = screen->x;
+		ycoords[i] = screen->y;
+		D_PRINTF("Monitor %d: (x,y): (%d,%d)\n", i, xcoords[i], ycoords[i]);
+		D_PRINTF("Monitor %d: %dx%d\n", i, widths[i], heights[i]);
 	}
 
 	XRRFreeScreenResources(screens);
@@ -132,46 +156,29 @@ int main(int argc, const char **argv)
 	// draw the text on our empty image and find out how many pixels we
 	// need to offset it by
 	imlib_text_draw_with_return_metrics(0, 0, prompt, &offset_w, &dum, &dum, &dum);
+	D_PRINTF("Text offset: %d\n", offset_w);
 
 	// discard old image and change context to screenshot
 	imlib_free_image_and_decache();
 	imlib_context_set_image(im);
 
-	// define variables for and calculate top left and right corner
-	// coordinates of the crop region
-	int tl = widths[0] / 2 - 150;
-	int tr = heights[0] / 2 - 150;
-
-	// crop to 300x300 square at the centre of the monitor
-	// and change context
-	Imlib_Image *c = imlib_create_cropped_image(tl, tr, 300, 300);
-	imlib_context_set_image(c);
-
-	// rescale to 3x3 and change context
-	c = imlib_create_cropped_scaled_image(0, 0, 300, 300, 3, 3);
-	imlib_context_set_image(c);
-
 	// setup some array of values to figure out whether we need to draw
 	// light or dark icons and text
 	float values[n];
 
-	// grab the centre pixel value (doesn't work with 1x1 for some reason)
-	imlib_image_query_pixel_hsva(2, 2, &dum2, &dum2, &values[0], &dum);
-
-	// discard modifications and change context back to whole screen
-	imlib_free_image_and_decache();
-	imlib_context_set_image(im);
-
     // repeat the above for each monitor
-	for (int i = 1; i < n; i++)
+	for (int i = 0; i < n; ++i)
 	{
+		D_PRINTF("Attempting to find value for monitor %d\n", i);
+
 		// calculate top left and right corner coordinates
-		tl = widths[i] / 2 - 150 + widths[i - 1];
-		tr = heights[i] / 2 - 150 + heights[i - 1];
+		int tlw = widths[i] / 2 - 150 + xcoords[i];
+		int tlh = heights[i] / 2 - 150 + ycoords[i];
+		D_PRINTF("Monitor %d: box top left corner (x,y): (%d,%d)\n", i, tlw, tlh);
 
 		// crop to 300x300 square at the centre of monitor i
 		// and change context
-		Imlib_Image *c = imlib_create_cropped_image(tl, tr, 300, 300);
+		Imlib_Image *c = imlib_create_cropped_image(tlw, tlh, 300, 300);
 		imlib_context_set_image(c);
 
 		// rescale to 3x3 and change context
@@ -180,6 +187,7 @@ int main(int argc, const char **argv)
 
 		// grab centre pixel value
 		imlib_image_query_pixel_hsva(2, 2, &dum2, &dum2, &values[i], &dum);
+		D_PRINTF("Monitor %d: value %f\n", i, values[i]);
 
 		// discard modifications and chage context back to whole screen
 		imlib_free_image_and_decache();
@@ -207,51 +215,14 @@ int main(int argc, const char **argv)
 	s = imlib_create_cropped_scaled_image(0, 0, dw/5, dh/5, dw, dh);
 	imlib_context_set_image(s);
 
-	// prepare to load the lock image
-	Imlib_Image *lock = NULL;
-
-	// determine which lock image to load for the first monitor
-	if (values[0] * 100 >= 50)
+	// draw the lock and text on monitor(s)
+	for (int i = 0; i < n; ++i)
 	{
-		// monitor is bright
-		lock = imlib_load_image(PREFIX"/share/i3lock-next/lock-dark.png");
-		imlib_context_set_color(0, 0, 0, 255);
-	}
-	else
-	{
-		// monitor is dark
-		lock = imlib_load_image(PREFIX"/share/i3lock-next/lock-light.png");
-		imlib_context_set_color(255, 255, 255, 255);
-	}
+		D_PRINTF("Attempting to draw lock on monitor %d\n", i);
 
-	// couldn't load lock
-	if (!lock)
-	{
-		fprintf(stderr, "%s %s\n", i3lockerr, lockimgerr);
-		free(im);
-		free(disp);
-		imlib_free_font();
-		imlib_free_image_and_decache();
-		return 3;
-	}
+		// prepare to load lock image for this monitor
+		Imlib_Image *lock = NULL;
 
-	// define variables for prompt string location on monitor
-	int promptx = widths[0] / 2 - offset_w / 2;
-	int prompty = heights[0] / 1.5;
-
-	// draw prompt just below the centre of the monitor
-	imlib_text_draw(promptx, prompty, prompt);
-
-	// define variables for location of lock image on monitor
-	int lockx = widths[0] / 2 - 40;
-	int locky = heights[0] / 2 - 40;
-
-	// draw lock image at centre on monitor
-	imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, lockx, locky, 80, 80);
-
-	// draw the lock and text on the other monitors (if they exist)
-	for (int i = 1; i < n; i++)
-	{
 		// determine which lock image to load based on monitor colour
 		if (values[i] * 100 >= 50)
 		{
@@ -276,25 +247,27 @@ int main(int argc, const char **argv)
         }
 
 		// set variables for prompt string location on monitor
-		promptx = widths[i] / 2 - offset_w / 2 + widths[i - 1];
-		prompty = heights[i] / 1.5;
+		int promptx = widths[i] / 2 + xcoords[i] - offset_w / 2;
+		int prompty = heights[i] / 1.5 + ycoords[i];
+		D_PRINTF("Monitor %d: prompt (x,y): (%d,%d)\n", i, promptx, prompty);
 
 		// draw prompt string just below the centre of the monitor
 		imlib_text_draw(promptx, prompty, prompt);
 
 		// set variables for lock image location on monitor
-		lockx = widths[i] / 2 - 40 + widths[i - 1];
-		locky = heights[i] / 2 - 40;
+		int lockx = widths[i] / 2 + xcoords[i] - 40;
+		int locky = heights[i] / 2 + ycoords[i] - 40;
+		D_PRINTF("Monitor %d: lock (x,y): (%d,%d)\n", i, lockx, locky);
 
 		// draw lock image at the centre of the monitor
 		imlib_blend_image_onto_image(lock, 0, 0, 0, 80, 80, lockx, locky, 80, 80);
 	}
 
 	// save the image and cleanup
+	D_PRINTF("Attempting to save image: path: %s\n", argv[1]);
 	imlib_save_image(argv[1]);
 
 	free(im);
-	free(lock);
 	free(disp);
 	imlib_free_font();
 	imlib_free_image_and_decache();

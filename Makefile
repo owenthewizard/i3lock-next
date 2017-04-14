@@ -71,7 +71,7 @@ install:
 	@sed -i 's_PREFIX=/usr/local_PREFIX=\$(PREFIX)_' $(DESTDIR)$(PREFIX)/bin/$(SCRIPT)
 	@echo Install to $(DESTDIR)$(PREFIX) complete
 
-## uninstall everything (for normal install only)
+## uninstall everything
 uninstall:
 	@echo Removing script
 	@rm $(DESTDIR)$(PREFIX)/bin/$(SCRIPT)
@@ -82,7 +82,7 @@ uninstall:
 	@echo NOTE: empty directories may exist if you had nothing installed in $(DESTDIR)$(PREFIX)
 
 ## create a build for use with gdb
-debug: CFLAGS += -ggdb -Werror -pedantic-errors
+debug: CFLAGS += -ggdb -Werror -pedantic-errors -DDEBUG
 debug: $(TARGET)
 
 ## create a build with all marginally useful warnings turned on
