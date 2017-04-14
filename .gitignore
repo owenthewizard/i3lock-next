@@ -1,0 +1,4 @@
+# .gitignore for i3lock-next
+
+## directories
+build/
