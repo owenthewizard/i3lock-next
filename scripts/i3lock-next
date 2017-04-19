@@ -12,20 +12,20 @@ PREFIX=/usr/local
 
 # display help text then exit (on -h or --help flags as arg 1)
 if [[ ${1} == "-h" ]] || [[ ${1} == "--help" ]]; then
-	cat <<EOF
+    cat <<EOF
 Usage: i3lock-next [-h|--help] [prompt] [font] [size]
 
 Options:
     -h, --help  Display this help text.
 
-	prompt      Prompt string to display, default is none.
+    prompt      Prompt string to display, default is none.
 
     font        Font to to use, default is Sans.
 
     size        Size of font, default is 18.
 
 EOF
-	exit
+    exit
 fi
 
 # set user-defined font and fontsize or use default
@@ -57,17 +57,17 @@ $_i3lock_next_helper ${_image} "${_font}"/"${_size}" "${_prompt}"
 #  - with options -e and -n so i3lock-color ignores empty passwords
 #    and doesn't fork
 i3lock -n -e                    \
-	--textcolor=00000000        \
-	--linecolor=00000000        \
-	--keyhlcolor=ffffff80       \
-	--separatorcolor=22222260   \
-	\
-	--insidecolor=0000001c      \
-	--insidevercolor=ffffff1c   \
-	--insidewrongcolor=ffffff1c \
-	\
-	--ringcolor=0000001c        \
-	--ringvercolor=ffffff00     \
-	--ringwrongcolor=ffffff55   \
-	\
-	-i ${_image}
+    --textcolor=00000000        \
+    --linecolor=00000000        \
+    --keyhlcolor=ffffff80       \
+    --separatorcolor=22222260   \
+    \
+    --insidecolor=0000001c      \
+    --insidevercolor=ffffff1c   \
+    --insidewrongcolor=ffffff1c \
+    \
+    --ringcolor=0000001c        \
+    --ringvercolor=ffffff00     \
+    --ringwrongcolor=ffffff55   \
+    \
+    -i ${_image}
