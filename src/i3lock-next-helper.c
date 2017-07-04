@@ -26,6 +26,44 @@
         #define D_PRINTF(fmt, ...) do{ } while (0)
 #endif
 
+const char * imlib_error_as_str(Imlib_Load_Error e)
+{
+    switch(e)
+    {
+        case IMLIB_LOAD_ERROR_NONE:
+            return "no error";
+        case IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST:
+            return "file does not exist";
+        case IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY:
+            return "file is a directory";
+        case IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_READ:
+            return "permission denied (read)";
+        case IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT:
+            return "no loader for file format";
+        case IMLIB_LOAD_ERROR_PATH_TOO_LONG:
+            return "path too long";
+        case IMLIB_LOAD_ERROR_PATH_COMPONENT_NON_EXISTANT:
+            return "path component does not exist";
+        case IMLIB_LOAD_ERROR_PATH_COMPONENT_NOT_DIRECTORY:
+            return "path component is not a directory";
+        case IMLIB_LOAD_ERROR_PATH_POINTS_OUTSIDE_ADDRESS_SPACE:
+            return "path points outside address space";
+        case IMLIB_LOAD_ERROR_TOO_MANY_SYMBOLIC_LINKS:
+            return "too many symbolic links";
+        case IMLIB_LOAD_ERROR_OUT_OF_MEMORY:
+            return "out of memory";
+        case IMLIB_LOAD_ERROR_OUT_OF_FILE_DESCRIPTORS:
+            return "out of file descriptors";
+        case IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_WRITE:
+            return "permission denied (write)";
+        case IMLIB_LOAD_ERROR_OUT_OF_DISK_SPACE:
+            return "no space left on device";
+        case IMLIB_LOAD_ERROR_UNKNOWN:
+                return "unknown error";
+    }
+
+    return "undefined error";
+}
 
 int main(int argc, const char **argv)
 {
@@ -222,23 +260,24 @@ int main(int argc, const char **argv)
 
                 // prepare to load lock image for this monitor
                 Imlib_Image *lock = NULL;
+                Imlib_Load_Error error = IMLIB_LOAD_ERROR_NONE;
 
                 // determine which lock image to load based on monitor colour
                 if (values[i] * 100 >= 50)
                 {
-                        lock = imlib_load_image(PREFIX"/share/i3lock-next/lock-dark.png");
+                        lock = imlib_load_image_with_error_return(PREFIX"/share/i3lock-next/lock-dark.png", &error);
                         imlib_context_set_color(0, 0, 0, 255);
                 }
                 else
                 {
-                        lock = imlib_load_image(PREFIX"/share/i3lock-next/lock-light.png");
+                        lock = imlib_load_image_with_error_return(PREFIX"/share/i3lock-next/lock-light.png", &error);
                         imlib_context_set_color(255, 255, 255, 255);
                 }
 
                 if (!lock)
                 {
                         // couldn't load lock image
-                        fprintf(stderr, "%s %s\n", i3lockerr, lockimgerr);
+                        fprintf(stderr, "%s %s (%s)\n", i3lockerr, lockimgerr, imlib_error_as_str(error));
                         free(im);
                         XFree(disp);
                         imlib_free_font();
@@ -274,3 +313,4 @@ int main(int argc, const char **argv)
 
         return 0;
 }
+
