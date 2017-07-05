@@ -77,6 +77,7 @@ int main(int argc, const char **argv)
         const char screenshoterr[]  =  "can't take screenshot";
         const char fonterr[]        =  "can't find font";
         const char lockimgerr[]     =  "can't load lock image";
+        const char saveimgerr[]     =  "can't save image";
 
         // only take two required arguments
         if (argc < 3 || argc > 4)
@@ -254,13 +255,13 @@ int main(int argc, const char **argv)
         imlib_context_set_image(s);
 
         // draw the lock and text on monitor(s)
+        Imlib_Load_Error error = IMLIB_LOAD_ERROR_NONE;
         for (int i = 0; i < n; ++i)
         {
                 D_PRINTF("Attempting to draw lock on monitor %d\n", i);
 
                 // prepare to load lock image for this monitor
                 Imlib_Image *lock = NULL;
-                Imlib_Load_Error error = IMLIB_LOAD_ERROR_NONE;
 
                 // determine which lock image to load based on monitor colour
                 if (values[i] * 100 >= 50)
@@ -304,7 +305,10 @@ int main(int argc, const char **argv)
 
         // save the image and cleanup
         D_PRINTF("Attempting to save image: path: %s\n", argv[1]);
-        imlib_save_image(argv[1]);
+        imlib_save_image_with_error_return(argv[1], &error);
+
+        if (error != 0)
+            fprintf(stderr, "%s %s (%s)\n", i3lockerr, saveimgerr, imlib_error_as_str(error));
 
         free(im);
         XFree(disp);
