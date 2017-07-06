@@ -10,6 +10,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+/* POSIX */
+#include <unistd.h>
+
 /* X11 */
 #include <X11/Xlib.h>
 #include <X11/extensions/Xrandr.h>
@@ -22,8 +25,23 @@
         #define D_PRINTF(fmt, ...) fprintf(stderr, "DEBUG: %s: %d: %s(): " fmt, \
                                            __FILE__, __LINE__, __func__,        \
                                            __VA_ARGS__);
+        /* POSIX */
+        #include <unistd.h>
+
+        /* Strings */
+        #include <string.h>
+
+        #define D_PRINTPERM(file)   {                                                                           \
+                                        int exist   = access(file, F_OK);                                       \
+                                        int read    = access(file, R_OK);                                       \
+                                        int write   = access(file, W_OK);                                       \
+                                        int exec    = access(file, X_OK);                                       \
+                                        D_PRINTF("%s exists: %s\n", file, exist? "no" : "yes");                 \
+                                        D_PRINTF("%s permissions: R|%d W|%d X|%d\n", file, read, write, exec);  \
+                                    }
 #else
-        #define D_PRINTF(fmt, ...) do{ } while (0)
+        #define D_PRINTF(fmt, ...)  do{ } while (0)
+        #define D_PRINTPERM(file)   do{ } while (0)
 #endif
 
 const char * imlib_error_as_str(Imlib_Load_Error e)
@@ -172,6 +190,21 @@ int main(int argc, const char **argv)
         // work on a new empty image
         imlib_context_set_image(imlib_create_image(dw, dh));
 
+        #ifdef DEBUG
+                // we have to reformat the font as passed to get the actual file name
+                //
+                // because these values are hardcoded we only support font sizes
+                // (10 <= x <= 99), i.e. double digits
+                // other font sizes require chaning these numbers
+                const int orig = sizeof(char) * strlen(argv[2]);
+                char *font_path = (char*) malloc(orig);
+                memcpy(font_path, argv[2], orig - 3);
+                strcat(font_path, ".ttf");
+
+                D_PRINTPERM(font_path);
+                free(font_path);
+        #endif
+
         // load the font, given like so:
         // /usr/share/fonts/open-sans/OpenSans-Regular/18
         imlib_context_set_font(imlib_load_font(argv[2]));
@@ -266,11 +299,13 @@ int main(int argc, const char **argv)
                 // determine which lock image to load based on monitor colour
                 if (values[i] * 100 >= 50)
                 {
+                        D_PRINTPERM(PREFIX"/share/i3lock-next/lock-dark.png");
                         lock = imlib_load_image_with_error_return(PREFIX"/share/i3lock-next/lock-dark.png", &error);
                         imlib_context_set_color(0, 0, 0, 255);
                 }
                 else
                 {
+                        D_PRINTPERM(PREFIX"/share/i3lock-next/lock-light.png");
                         lock = imlib_load_image_with_error_return(PREFIX"/share/i3lock-next/lock-light.png", &error);
                         imlib_context_set_color(255, 255, 255, 255);
                 }
@@ -317,4 +352,3 @@ int main(int argc, const char **argv)
 
         return 0;
 }
-
