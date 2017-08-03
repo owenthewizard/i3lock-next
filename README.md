@@ -22,13 +22,14 @@ Most of these should be available via the package manager for your distribution.
 
 ```
 $ make
-$ make install
+# make install
 ```
 
 To use a custom prefix for the installation directory:
 
 ```
-$ make install PREFIX=/your/custom/prefix
+$ make PREFIX=/your/custom/prefix
+# make install PREFIX=/your/custom/prefix
 ```
 
 ## Usage
