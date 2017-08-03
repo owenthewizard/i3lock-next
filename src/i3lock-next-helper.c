@@ -22,13 +22,66 @@
 
 /* Debugging Messages */
 #ifdef DEBUG
-    #define D_PRINTF(fmt, ...) fprintf(stderr, "DEBUG: %s: %d: %s(): " fmt, \
-                                            __FILE__, __LINE__, __func__,   \
-                                            __VA_ARGS__);
+        #define D_PRINTF(fmt, ...) fprintf(stderr, "DEBUG: %s: %d: %s(): " fmt, \
+                                           __FILE__, __LINE__, __func__,        \
+                                           __VA_ARGS__);
+        /* POSIX */
+        #include <unistd.h>
+
+        /* Strings */
+        #include <string.h>
+
+        #define D_PRINTPERM(file)   {                                                                           \
+                                        int exist   = access(file, F_OK);                                       \
+                                        int read    = access(file, R_OK);                                       \
+                                        int write   = access(file, W_OK);                                       \
+                                        int exec    = access(file, X_OK);                                       \
+                                        D_PRINTF("%s exists: %s\n", file, exist? "no" : "yes");                 \
+                                        D_PRINTF("%s permissions: R|%d W|%d X|%d\n", file, read, write, exec);  \
+                                    }
 #else
-    #define D_PRINTF(fmt, ...) do{ } while (0)
+        #define D_PRINTF(fmt, ...)  do{ } while (0)
+        #define D_PRINTPERM(file)   do{ } while (0)
 #endif
 
+const char * imlib_error_as_str(Imlib_Load_Error e)
+{
+    switch(e)
+    {
+        case IMLIB_LOAD_ERROR_NONE:
+            return "no error";
+        case IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST:
+            return "file does not exist";
+        case IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY:
+            return "file is a directory";
+        case IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_READ:
+            return "permission denied (read)";
+        case IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT:
+            return "no loader for file format";
+        case IMLIB_LOAD_ERROR_PATH_TOO_LONG:
+            return "path too long";
+        case IMLIB_LOAD_ERROR_PATH_COMPONENT_NON_EXISTANT:
+            return "path component does not exist";
+        case IMLIB_LOAD_ERROR_PATH_COMPONENT_NOT_DIRECTORY:
+            return "path component is not a directory";
+        case IMLIB_LOAD_ERROR_PATH_POINTS_OUTSIDE_ADDRESS_SPACE:
+            return "path points outside address space";
+        case IMLIB_LOAD_ERROR_TOO_MANY_SYMBOLIC_LINKS:
+            return "too many symbolic links";
+        case IMLIB_LOAD_ERROR_OUT_OF_MEMORY:
+            return "out of memory";
+        case IMLIB_LOAD_ERROR_OUT_OF_FILE_DESCRIPTORS:
+            return "out of file descriptors";
+        case IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_WRITE:
+            return "permission denied (write)";
+        case IMLIB_LOAD_ERROR_OUT_OF_DISK_SPACE:
+            return "no space left on device";
+        case IMLIB_LOAD_ERROR_UNKNOWN:
+                return "unknown error";
+    }
+
+    return "undefined error";
+}
 
 int main(int argc, const char **argv)
 {
@@ -42,6 +95,7 @@ int main(int argc, const char **argv)
     const char screenshoterr[]  =  "can't take screenshot";
     const char fonterr[]        =  "can't find font";
     const char lockimgerr[]     =  "can't load lock image";
+    const char saveimgerr[]     =  "can't save image";
 
     // only take two required arguments
     if (argc < 3 || argc > 4)
@@ -139,6 +193,25 @@ int main(int argc, const char **argv)
         return 4;
     }
 
+    #ifdef DEBUG
+                // we have to reformat the font as passed to get the actual file name
+                //
+                // because these values are hardcoded we only support font sizes
+                // (10 <= x <= 99), i.e. double digits
+                // other font sizes require chaning these numbers
+                const int orig = sizeof(char) * strlen(argv[2]);
+                char *font_path = (char*) malloc(orig);
+                memcpy(font_path, argv[2], orig - 3);
+                strcat(font_path, ".ttf");
+
+                D_PRINTPERM(font_path);
+                free(font_path);
+    #endif
+
+    // load the font, given like so:
+    // /usr/share/fonts/open-sans/OpenSans-Regular/18
+    imlib_context_set_font(imlib_load_font(argv[2]));
+  
     // declare a variable for offsetting the text
     int offset_w;
 
@@ -158,7 +231,7 @@ int main(int argc, const char **argv)
     // setup some array of values to figure out whether we need to draw
     // light or dark icons and text
     float values[n];
-
+  
     // repeat the above for each monitor
     for (int i = 0; i < n; ++i)
     {
@@ -246,14 +319,63 @@ int main(int argc, const char **argv)
         // draw prompt string just below the center of the monitor
         imlib_text_draw(promptx, prompty, prompt);
 
-        // set variables for lock image location on monitor
-        int lockx = widths[i] / 2 + xcoords[i] - LOCK_SIZE/2;
-        int locky = heights[i] / 2 + ycoords[i] - LOCK_SIZE/2;
-        D_PRINTF("Monitor %d: lock (x,y): (%d,%d)\n", i, lockx, locky);
+        // draw the lock and text on monitor(s)
+        Imlib_Load_Error error = IMLIB_LOAD_ERROR_NONE;
+        for (int i = 0; i < n; ++i)
+        {
+                D_PRINTF("Attempting to draw lock on monitor %d\n", i);
 
-        // draw lock image at the center of the monitor
-        imlib_blend_image_onto_image(lock, 0, 0, 0, LOCK_SIZE, LOCK_SIZE, lockx, locky, LOCK_SIZE, LOCK_SIZE);
-    }
+                // prepare to load lock image for this monitor
+                Imlib_Image *lock = NULL;
+
+                // determine which lock image to load based on monitor colour
+                if (values[i] * 100 >= 50)
+                {
+                        D_PRINTPERM(PREFIX"/share/i3lock-next/lock-dark.png");
+                        lock = imlib_load_image_with_error_return(PREFIX"/share/i3lock-next/lock-dark.png", &error);
+                        imlib_context_set_color(0, 0, 0, 255);
+                }
+                else
+                {
+                        D_PRINTPERM(PREFIX"/share/i3lock-next/lock-light.png");
+                        lock = imlib_load_image_with_error_return(PREFIX"/share/i3lock-next/lock-light.png", &error);
+                        imlib_context_set_color(255, 255, 255, 255);
+                }
+
+                if (!lock)
+                {
+                        // couldn't load lock image
+                        fprintf(stderr, "%s %s (%s)\n", i3lockerr, lockimgerr, imlib_error_as_str(error));
+                        free(im);
+                        XFree(disp);
+                        imlib_free_font();
+                        imlib_free_image_and_decache();
+                        return 3;
+                }
+
+                // set variables for prompt string location on monitor
+                int promptx = widths[i] / 2 + xcoords[i] - offset_w / 2;
+                int prompty = heights[i] / 1.5 + ycoords[i];
+                D_PRINTF("Monitor %d: prompt (x,y): (%d,%d)\n", i, promptx, prompty);
+
+                // draw prompt string just below the centre of the monitor
+                imlib_text_draw(promptx, prompty, prompt);
+
+                // set variables for lock image location on monitor
+               int lockx = widths[i] / 2 + xcoords[i] - LOCK_SIZE/2;
+               int locky = heights[i] / 2 + ycoords[i] - LOCK_SIZE/2;
+               D_PRINTF("Monitor %d: lock (x,y): (%d,%d)\n", i, lockx, locky);
+
+                // draw lock image at the center of the monitor
+                imlib_blend_image_onto_image(lock, 0, 0, 0, LOCK_SIZE, LOCK_SIZE, lockx, locky, LOCK_SIZE, LOCK_SIZE);
+        }
+
+        // save the image and cleanup
+        D_PRINTF("Attempting to save image: path: %s\n", argv[1]);
+        imlib_save_image_with_error_return(argv[1], &error);
+
+        if (error != 0)
+            fprintf(stderr, "%s %s (%s)\n", i3lockerr, saveimgerr, imlib_error_as_str(error));
 
     // save the image and cleanup
     D_PRINTF("Attempting to save image: path: %s\n", argv[1]);
