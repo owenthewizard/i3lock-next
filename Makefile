@@ -1,16 +1,16 @@
 # Makefile for i3lock-next
 
-## define PREFIX, DATAROOTDIR, and LIBEXECDIR, if not defined
+## define PREFIX, DATAROOTDIR, and LIBDIR, if not defined
 ifndef PREFIX
 	PREFIX = /usr/local
 endif
 
 ifndef DATAROOTDIR
-	DATAROOTDIR = $(PREFIX)/share
+	DATAROOTDIR = /share
 endif
 
-ifndef LIBEXECDIR
-	LIBEXECDIR = $(PREFIX)/libexec
+ifndef LIBDIR
+	LIBDIR = /lib
 endif
 
 ## define gcc as C compiler and set CFLAGS to warn about most things
@@ -50,7 +50,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 $(TARGET): $(OBJ)
 	@mkdir -p $(BIN_DIR)
 	@echo Linking $^
-	@$(CC) -o $(BIN_DIR)/$@ $^ $(CFLAGS) $(LIBS)	
+	@$(CC) -o $(BIN_DIR)/$@ $^ $(CFLAGS) $(LIBS)
 	@echo Build complete
 
 .PHONY: install uninstall debug warn clean
@@ -61,14 +61,15 @@ install:
 	@echo Stripping unneeded symbols from binary
 	@strip --strip-unneeded $(BIN_DIR)/$(TARGET)
 	@install -m 755 -d $(DESTDIR)$(PREFIX)/bin
-	@install -m 755 -d $(DESTDIR)$(LIBEXECDIR)/$(SCRIPT)
-	@install -m 755 -d $(DESTDIR)$(DATAROOTDIR)/$(SCRIPT)
+	@install -m 755 -d $(DESTDIR)$(PREFIX)$(LIBDIR)/$(SCRIPT)
+	@install -m 755 -d $(DESTDIR)$(PREFIX)$(DATAROOTDIR)/$(SCRIPT)
 	@echo Installing script, binary, and data
 	@install -m 755 scripts/$(SCRIPT) $(DESTDIR)$(PREFIX)/bin/$(SCRIPT)
-	@install -m 755 $(BIN_DIR)/$(TARGET) $(DESTDIR)$(LIBEXECDIR)/$(SCRIPT)/$(TARGET)
-	@install -m 644 data/* $(DESTDIR)$(DATAROOTDIR)/$(SCRIPT)/
+	@install -m 755 $(BIN_DIR)/$(TARGET) $(DESTDIR)$(PREFIX)$(LIBDIR)/$(SCRIPT)/$(TARGET)
+	@install -m 644 data/* $(DESTDIR)$(PREFIX)$(DATAROOTDIR)/$(SCRIPT)/
 	@echo Replacing PREFIX in i3lock-next script
-	@sed -i 's_PREFIX=/usr/local_PREFIX=\$(PREFIX)_' $(DESTDIR)$(PREFIX)/bin/$(SCRIPT)
+	@sed -i 's;PREFIX=.*;PREFIX=\$(PREFIX);g' $(DESTDIR)$(PREFIX)/bin/$(SCRIPT)
+	@sed -i 's;LIBDIR=.*;LIBDIR=\$(LIBDIR);g' $(DESTDIR)$(PREFIX)/bin/$(SCRIPT)
 	@echo Install to $(DESTDIR)$(PREFIX) complete
 
 ## uninstall everything
@@ -76,8 +77,8 @@ uninstall:
 	@echo Removing script
 	@rm $(DESTDIR)$(PREFIX)/bin/$(SCRIPT)
 	@echo Removing binary and data directories
-	@rm -r $(DESTDIR)$(LIBEXECDIR)/$(SCRIPT)
-	@rm -r $(DESTDIR)$(DATAROOTDIR)/$(SCRIPT)
+	@rm -r $(DESTDIR)$(PREFIX)$(LIBDIR)/$(SCRIPT)
+	@rm -r $(DESTDIR)$(PREFIX)$(DATAROOTDIR)/$(SCRIPT)
 	@echo Uninstall complete
 	@echo NOTE: empty directories may exist if you had nothing installed in $(DESTDIR)$(PREFIX)
 
