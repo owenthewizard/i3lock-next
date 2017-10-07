@@ -7,8 +7,9 @@ set -e
 # set pipelines to return failure if any command errors
 set -o pipefail
 
-# $PREFIX is set during installation of i3lock-next
+# $PREFIX and $LIBDIR are set during installation of i3lock-next
 PREFIX=/usr/local
+LIBDIR=/lib
 
 # display help text then exit (on -h or --help flags as arg 1)
 if [[ ${1} == "-h" ]] || [[ ${1} == "--help" ]]; then
@@ -47,8 +48,8 @@ readonly _image="/tmp/tmp.${_random}.png"
 # make sure ${_image} is always deleted on exit
 trap 'rm -f ${_image}' EXIT
 
-# call i3lock-next-helper (variable to keep lines below 72 charactters)
-_i3lock_next_helper=${PREFIX}/libexec/i3lock-next/i3lock-next-helper
+# call i3lock-next-helper (variable to keep lines below 72 characters)
+_i3lock_next_helper=${PREFIX}/${LIBDIR}/i3lock-next/i3lock-next-helper
 $_i3lock_next_helper ${_image} "${_font}"/"${_size}" "${_prompt}"
 
 # now call i3lock (should have i3lock-color installed)
