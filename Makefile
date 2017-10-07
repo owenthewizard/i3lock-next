@@ -10,7 +10,7 @@ ifndef DATAROOTDIR
 endif
 
 ifndef LIBDIR
-	LIBDIR = /lib
+	LIBDIR = /libexec
 endif
 
 ## define gcc as C compiler and set CFLAGS to warn about most things
