@@ -294,12 +294,14 @@ int main(int argc, const char **argv)
             D_PRINTPERM(PREFIX"/share/i3lock-next/lock-dark.png");
             lock = imlib_load_image_with_error_return(PREFIX"/share/i3lock-next/lock-dark.png", &error);
             imlib_context_set_color(0, 0, 0, 255);
+            puts("000000FF");
         }
         else
         {
             D_PRINTPERM(PREFIX"/share/i3lock-next/lock-light.png");
             lock = imlib_load_image_with_error_return(PREFIX"/share/i3lock-next/lock-light.png", &error);
             imlib_context_set_color(255, 255, 255, 255);
+            puts("FFFFFFFF");
         }
 
         if (!lock)

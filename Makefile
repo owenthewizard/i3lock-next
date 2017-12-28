@@ -23,6 +23,9 @@ CFLAGS = -std=c11 -Wall -Wextra -O2 -fomit-frame-pointer
 TARGET = i3lock-next-helper
 SCRIPT = i3lock-next
 
+## I suck at making Makefiles
+TARGET_2 = image-size
+
 ## define important directories for this project
 ### source files
 SRC_DIR = ./src
@@ -36,11 +39,15 @@ BIN_DIR = $(BLD_DIR)/bin
 OBJ_LIST = i3lock-next-helper.o
 OBJ = $(patsubst %, $(OBJ_DIR)/%, $(OBJ_LIST))
 
+OBJ_2 = $(OBJ_DIR)/image-size.o
+
 ## library linking flags
 LIBS = -lX11 -lXrandr -lImlib2
 
 ## add PREFIX to CFLAGS (Thanks SuprDewd - see issue #4)
 CFLAGS += -DPREFIX=\"$(PREFIX)\"
+
+.DEFAULT_GOAL = all
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@echo Compiling $<
@@ -53,19 +60,28 @@ $(TARGET): $(OBJ)
 	@$(CC) -o $(BIN_DIR)/$@ $^ $(CFLAGS) $(LIBS)
 	@echo Build complete
 
-.PHONY: install uninstall debug warn clean
+$(TARGET_2): $(OBJ_2)
+	@echo Linking $^
+	@$(CC) -o $(BIN_DIR)/$@ $^ $(CFLAGS) $(LIBS)
+	@echo Build complete
+
+all: $(TARGET) $(TARGET_2)
+
+.PHONY: install uninstall debug warn clean all
 
 ## build and install everything (including scripts/i3lock-next and data)
 ## (Thanks SuprDewd - see issue #4)
 install:
 	@echo Stripping unneeded symbols from binary
 	@strip --strip-unneeded $(BIN_DIR)/$(TARGET)
+	@strip --strip-unneeded $(BIN_DIR)/$(TARGET_2)
 	@install -m 755 -d $(DESTDIR)$(PREFIX)/bin
 	@install -m 755 -d $(DESTDIR)$(PREFIX)$(LIBDIR)/$(SCRIPT)
 	@install -m 755 -d $(DESTDIR)$(PREFIX)$(DATAROOTDIR)/$(SCRIPT)
 	@echo Installing script, binary, and data
 	@install -m 755 scripts/$(SCRIPT) $(DESTDIR)$(PREFIX)/bin/$(SCRIPT)
 	@install -m 755 $(BIN_DIR)/$(TARGET) $(DESTDIR)$(PREFIX)$(LIBDIR)/$(SCRIPT)/$(TARGET)
+	@install -m 755 $(BIN_DIR)/$(TARGET_2) $(DESTDIR)$(PREFIX)$(LIBDIR)/$(SCRIPT)/$(TARGET_2)
 	@install -m 644 data/* $(DESTDIR)$(PREFIX)$(DATAROOTDIR)/$(SCRIPT)/
 	@echo Replacing PREFIX in i3lock-next script
 	@sed -i 's;PREFIX=.*;PREFIX=\$(PREFIX);g' $(DESTDIR)$(PREFIX)/bin/$(SCRIPT)
@@ -84,7 +100,7 @@ uninstall:
 
 ## create a build for use with gdb
 debug: CFLAGS += -ggdb -Werror -pedantic-errors -DDEBUG
-debug: $(TARGET)
+debug: $(TARGET) $(TARGET_2)
 
 ## create a build with all marginally useful warnings turned on
 ## -Werror is not included here as these can return false positives
@@ -93,7 +109,7 @@ warn: CFLAGS += -Wpointer-arith -Wwrite-strings -Wcast-qual
 warn: CFLAGS += -Wbad-function-cast -Wformat-security -Wcast-align
 warn: CFLAGS += -Wmissing-format-attribute -Winline
 warn: CFLAGS += -Wformat-nonliteral -Wstrict-prototypes
-warn: $(TARGET)
+warn: $(TARGET) $(TARGET_2)
 
 clean:
 	@rm -rf $(OBJ_DIR) $(BIN_DIR)

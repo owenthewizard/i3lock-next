@@ -49,26 +49,38 @@ readonly _image="/tmp/tmp.${_random}.png"
 trap 'rm -f ${_image}' EXIT
 
 # call i3lock-next-helper (variable to keep lines below 72 characters)
-_i3lock_next_helper=${PREFIX}/${LIBDIR}/i3lock-next/i3lock-next-helper
-$_i3lock_next_helper ${_image} "${_font}"/"${_size}" "${_prompt}"
+_i3lock_next_helper="${PREFIX}/${LIBDIR}/i3lock-next/i3lock-next-helper"
+_datetimecolor=$($_i3lock_next_helper ${_image} "${_font}"/"${_size}" "${_prompt}") # oops
+
+# get some values we need
+_wxh="$(${PREFIX}/${LIBDIR}/i3lock-next/image-size ${_image})"
 
 # now call i3lock (should have i3lock-color installed)
 #  - with custom colours (such as fully transparent text - text is
 #    dealt with by i3lock-next-helper)
 #  - with options -e and -n so i3lock-color ignores empty passwords
 #    and doesn't fork
-i3lock -n -e                    \
-    --textcolor=00000000        \
-    --linecolor=00000000        \
-    --keyhlcolor=ffffff80       \
-    --separatorcolor=22222260   \
+i3lock -n -e -k                             \
+    --timepos="${_wxh%x*}-cw:${_wxh#*x}-ch" \
+    --timecolor="${_datetimecolor}"         \
+    --timefont="${2:-Sans}"                 \
+    --timesize="$((${_size}*2))"            \
     \
-    --insidecolor=0000001c      \
-    --insidevercolor=ffffff1c   \
-    --insidewrongcolor=ffffff1c \
+    --datecolor="${_datetimecolor}"         \
+    --datefont="${2:-Sans}"                 \
+    --datesize="${_size}"                   \
     \
-    --ringcolor=0000001c        \
-    --ringvercolor=ffffff00     \
-    --ringwrongcolor=ffffff55   \
+    --textcolor=00000000                    \
+    --linecolor=00000000                    \
+    --keyhlcolor=ffffff80                   \
+    --separatorcolor=22222260               \
+    \
+    --insidecolor=0000001c                  \
+    --insidevercolor=ffffff1c               \
+    --insidewrongcolor=ffffff1c             \
+    \
+    --ringcolor=0000001c                    \
+    --ringvercolor=ffffff00                 \
+    --ringwrongcolor=ffffff55               \
     \
     -i ${_image}
