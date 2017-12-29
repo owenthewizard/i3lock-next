@@ -45,11 +45,3 @@
  *
  */
 #define THRESHOLD 50
-
-/* LOCK_SIZE
- * Size of the lock image, in pixels
- * Assumes a square lock image
- * Default 80
- *
- */
-#define LOCK_SIZE 80

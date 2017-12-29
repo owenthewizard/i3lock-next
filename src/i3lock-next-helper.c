@@ -323,13 +323,20 @@ int main(int argc, const char **argv)
         // draw prompt string just below the centre of the monitor
         imlib_text_draw(promptx, prompty, prompt);
 
+        // get width & height of lock image
+        imlib_context_set_image(lock);
+        int lock_width = imlib_image_get_width();
+        int lock_height = imlib_image_get_height();
+        // make sure to set context back to s
+        imlib_context_set_image(s);
+
         // set variables for lock image location on monitor
-        int lockx = widths[i] / 2 + xcoords[i] - LOCK_SIZE/2;
-        int locky = heights[i] / 2 + ycoords[i] - LOCK_SIZE/2;
+        int lockx = widths[i] / 2 + xcoords[i] - lock_width/2;
+        int locky = heights[i] / 2 + ycoords[i] - lock_height/2;
         D_PRINTF("Monitor %d: lock (x,y): (%d,%d)\n", i, lockx, locky);
 
         // draw lock image at the center of the monitor
-        imlib_blend_image_onto_image(lock, 0, 0, 0, LOCK_SIZE, LOCK_SIZE, lockx, locky, LOCK_SIZE, LOCK_SIZE);
+        imlib_blend_image_onto_image(lock, 0, 0, 0, lock_width, lock_height, lockx, locky, lock_width, lock_height);
     }
 
     // save the image and cleanup
