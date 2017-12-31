@@ -1,93 +1,125 @@
-#! /usr/bin/env bash
-#
+#!/usr/bin/env python3
 
-# set script to exit if a command fails
-set -e
+from sys import argv, getdefaultencoding
+from os import urandom, remove
 
-# set pipelines to return failure if any command errors
-set -o pipefail
+from atexit import register
+from random import getrandbits
+from struct import unpack
+from subprocess import run, PIPE
 
-# $PREFIX and $LIBDIR are set during installation of i3lock-next
-PREFIX=/usr/local
-LIBDIR=/lib
+# PREFIX and LIBDIR are set during installation of i3lock-next
+PREFIX = '/usr/local'
+LIBDIR = '/lib'
 
-# display help text then exit (on -h or --help flags as arg 1)
-if [[ ${1} == "-h" ]] || [[ ${1} == "--help" ]]; then
-    cat <<EOF
-Usage: i3lock-next [-h|--help] [prompt] [font] [size]
+# display help text then exit (on -h or --help flags as arg 1
+if len(argv) > 1 and argv[1] in {'-h', '--help'}:
+    print('\n'.join([
+        'Usage: i3lock-next [-h|--help] [prompt] [font] [size]',
+        '',
+        'Options:',
+        '    -h, --help  Display this help text.',
+        '',
+        '    prompt      Prompt string to display, default is none.',
+        '',
+        '    font        Font to to use, default is Sans.',
+        '',
+        '    size        Size of font, default is 18.'
+        ]))
 
-Options:
-    -h, --help  Display this help text.
+# set user-defined parameters or use default
+prompt = argv[1] if len(argv) > 1 else ''
+font = argv[2] if len(argv) > 2 else 'Sans'
+size = argv[3] if len(argv) > 3 else 18
 
-    prompt      Prompt string to display, default is none.
+font_i3lock = font # save this for later
 
-    font        Font to to use, default is Sans.
-
-    size        Size of font, default is 18.
-
-EOF
-    exit
-fi
-
-# set user-defined font and fontsize or use default
-_prompt=${1:-}
-_font=${2:-Sans}
-_size=${3:-18}
-
-# set script to treat unset variables as an error
-set -u
-
-# find user-defined fonts
-_font=$(fc-match "${_font}" -f "%{file}\n")
-_font=${_font%.*}
+# find user-defined font
+font = run(['fc-match', font, '-f' '%{file}'], stdout=PIPE)
+font = font.stdout.decode(getdefaultencoding())
 
 # define name for screenshot taken with i3lock-next-helper
-readonly _random=${RANDOM}
-readonly _image="/tmp/tmp.${_random}.png"
+random = int.from_bytes(urandom(4), byteorder='little')
+image = '/tmp/tmp.%d.png' % (random)
 
-# make sure ${_image} is always deleted on exit
-trap 'rm -f ${_image}' EXIT
+# make sure image is always deleted on exit
+register(lambda f: remove(f), image)
 
-# call i3lock-next-helper (variable to keep lines below 72 characters)
-_i3lock_next_helper="${PREFIX}/${LIBDIR}/i3lock-next/i3lock-next-helper"
-_datetimecolor=$($_i3lock_next_helper ${_image} "${_font}"/"${_size}" "${_prompt}") # oops
+# call i3lock-next-helper
+# variables to keep lines < 72 characters
+helper = '%s%s/i3lock-next-helper' % (PREFIX, LIBDIR)
+font = '%s/%d' % (font, size)
+color = run([helper, image, font, prompt], stdout=PIPE)
+color = color.stdout.decode(getdefaultencoding())
 
-# get image width & height
-_wxh="$(${PREFIX}/${LIBDIR}/i3lock-next/image-size ${_image})"
-# get lock image size to calculate appropriate ring radius
-_lock_wxh="$(${PREFIX}/${LIBDIR}/i3lock-next/image-size ../share/i3lock-next/lock-dark.png)"
-_lock_w="${_lock_wxh%x*}"
-_lock_h="${_lock_wxh#*x}"
-_temp=$((_lock_w*_lock_w + _lock_h*_lock_h))
-_ring_radius="$(echo "$_temp" | python -c "import math; print int(1.1*math.sqrt(float(raw_input()))/2)")"
+# get image size
+with open(image, 'rb') as image_file:
+    w, h = unpack('>LL', image_file.read()[16:24])
 
-# now call i3lock (should have i3lock-color installed)
-#  - with custom colours (such as fully transparent text - text is
-#    dealt with by i3lock-next-helper)
+# get lock size and other color
+if color == 'FFFFFFFF':
+    lock = 'lock-light'
+    other_color = '000000FF'
+else:
+    lock = 'lock-dark'
+    other_color = '000000FF'
+
+lock = '%s/share/i3lock-next/%s.png' % (PREFIX, lock)
+with open(lock, 'rb') as lock_file:
+    lock_w, lock_h = unpack('>LL', lock_file.read()[16:24])
+
+# calculate appropriate ring radius
+radius = int(1.1 * ((float((lock_w ** 2 + lock_h ** 2) / 2)) ** 0.5))
+
+# call i3lock (should have i3lock-color installed)
+#  - prompt color is managed by i3lock-next-helper
 #  - with options -e and -n so i3lock-color ignores empty passwords
 #    and doesn't fork
-i3lock -n -e -k                             \
-    --timepos="${_wxh%x*}-cw:${_wxh#*x}-ch" \
-    --timecolor="${_datetimecolor}"         \
-    --timefont="${2:-Sans}"                 \
-    --timesize="$((${_size}*2))"            \
-    \
-    --datecolor="${_datetimecolor}"         \
-    --datefont="${2:-Sans}"                 \
-    --datesize="${_size}"                   \
-    \
-    --textcolor=00000000                    \
-    --linecolor=00000000                    \
-    --keyhlcolor=ffffff80                   \
-    --separatorcolor=22222260               \
-    \
-    --insidecolor=0000001c                  \
-    --insidevercolor=ffffff1c               \
-    --insidewrongcolor=ffffff1c             \
-    \
-    --radius="$_ring_radius"                \
-    --ringcolor=0000001c                    \
-    --ringvercolor=ffffff00                 \
-    --ringwrongcolor=ffffff55               \
-    \
-    -i ${_image}
+color = color.rstrip()
+font_i3lock = font_i3lock.rstrip()
+other_color = other_color.rstrip()
+run([
+    'i3lock', '-n', '-e', '--force-clock',
+    '--timepos=%d-cw:%d-ch' % (w, h),
+    '--timecolor=%s' % (color),
+    '--timefont=%s' % (font_i3lock),
+    '--timesize=%d' % (size * 2),
+    '--datecolor=%s' % (color),
+    '--datefont=%s' % (font_i3lock),
+    '--datesize=%d' % (size),
+    '--textcolor=00000000', 
+    '--linecolor=00000000',
+    '--keyhlcolor=%s80' % (color[:-2]),
+    '--separatorcolor=22222260',
+    '--insidecolor=%s1c' % (color[:-2]),
+    '--insidevercolor=%s1c' % (other_color[:-2]),
+    '--insidewrongcolor=%s1c' % (other_color[:-2]),
+    '--radius=%d' % (radius),
+    '--ringcolor=%s1c' % (color[:-2]),
+    '--ringvercolor=ffffff00',
+    '--ringwrongcolor=%s55' % (other_color[:-2]),
+    '-i%s' % (image)
+    ])
+print('\n')
+print([
+    'i3lock', '-n', '-e', '--force-clock',
+    '--timepos=%d-cw:%d-ch' % (w, h),
+    '--timecolor=%s' % (color),
+    '--timefont=%s' % (font_i3lock),
+    '--timesize=%d' % (size * 2),
+    '--datecolor=%s' % (color),
+    '--datefont=%s' % (font_i3lock),
+    '--datesize=%d' % (size),
+    '--textcolor=00000000', 
+    '--linecolor=00000000',
+    '--keyhlcolor=%s80' % (color[:-2]),
+    '--separatorcolor=22222260',
+    '--insidecolor=%s1c' % (color[:-2]),
+    '--insidevercolor=%s1c' % (other_color[:-2]),
+    '--insidewrongcolor=%s1c' % (other_color[:-2]),
+    '--radius=%d' % (radius),
+    '--ringcolor=%s1c' % (color[:-2]),
+    '--ringvercolor=ffffff00',
+    '--ringwrongcolor=%s55' % (other_color[:-2]),
+    '-i%s' % (image)
+    ])
