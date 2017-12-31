@@ -100,26 +100,3 @@ run([
     '--ringwrongcolor=%s55' % (other_color[:-2]),
     '-i%s' % (image)
     ])
-print('\n')
-print([
-    'i3lock', '-n', '-e', '--force-clock',
-    '--timepos=%d-cw:%d-ch' % (w, h),
-    '--timecolor=%s' % (color),
-    '--timefont=%s' % (font_i3lock),
-    '--timesize=%d' % (size * 2),
-    '--datecolor=%s' % (color),
-    '--datefont=%s' % (font_i3lock),
-    '--datesize=%d' % (size),
-    '--textcolor=00000000', 
-    '--linecolor=00000000',
-    '--keyhlcolor=%s80' % (color[:-2]),
-    '--separatorcolor=22222260',
-    '--insidecolor=%s1c' % (color[:-2]),
-    '--insidevercolor=%s1c' % (other_color[:-2]),
-    '--insidewrongcolor=%s1c' % (other_color[:-2]),
-    '--radius=%d' % (radius),
-    '--ringcolor=%s1c' % (color[:-2]),
-    '--ringvercolor=ffffff00',
-    '--ringwrongcolor=%s55' % (other_color[:-2]),
-    '-i%s' % (image)
-    ])
