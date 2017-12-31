@@ -68,8 +68,9 @@ install:
 	@install -m 755 $(BIN_DIR)/$(TARGET) $(DESTDIR)$(PREFIX)$(LIBDIR)/$(SCRIPT)/$(TARGET)
 	@install -m 644 data/* $(DESTDIR)$(PREFIX)$(DATAROOTDIR)/$(SCRIPT)/
 	@echo Replacing PREFIX in i3lock-next script
-	@sed -i 's;PREFIX=.*;PREFIX=\$(PREFIX);g' $(DESTDIR)$(PREFIX)/bin/$(SCRIPT)
-	@sed -i 's;LIBDIR=.*;LIBDIR=\$(LIBDIR);g' $(DESTDIR)$(PREFIX)/bin/$(SCRIPT)
+	@sed -i 's;PREFIX = ".*";PREFIX = "\$(PREFIX)";g' $(DESTDIR)$(PREFIX)/bin/$(SCRIPT)
+	@echo Replacing LIBDIR in i3lock-next script
+	@sed -i 's;LIBDIR = ".*";LIBDIR = "\$(LIBDIR)";g' $(DESTDIR)$(PREFIX)/bin/$(SCRIPT)
 	@echo Install to $(DESTDIR)$(PREFIX) complete
 
 ## uninstall everything
