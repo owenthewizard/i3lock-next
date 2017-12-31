@@ -64,3 +64,8 @@ $ i3lock-next
 ```
 
 ![screenshot: default font](media/screenshot-default.png)
+
+## Attributions
+
+- Lock Icons: Font Awesome by Dave Gandy - http://fortawesome.github.com/Font-Awesome
+- See [THANKS.md](THANKS.md) for more.
