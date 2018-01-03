@@ -280,6 +280,7 @@ int main(int argc, const char **argv)
     imlib_context_set_image(s);
 
     // draw the lock and text on monitor(s)
+    // Note: the color that is printed is based on the center monitor in a multi-monitor setup
     Imlib_Load_Error error = IMLIB_LOAD_ERROR_NONE;
     for (int i = 0; i < n; i++)
     {
@@ -294,14 +295,16 @@ int main(int argc, const char **argv)
             D_PRINTPERM(PREFIX"/share/i3lock-next/lock-dark.png");
             lock = imlib_load_image_with_error_return(PREFIX"/share/i3lock-next/lock-dark.png", &error);
             imlib_context_set_color(0, 0, 0, 255);
-            puts("000000FF");
+            if (i == n / 2 + 1 || n == 1)
+                puts("000000FF");
         }
         else
         {
             D_PRINTPERM(PREFIX"/share/i3lock-next/lock-light.png");
             lock = imlib_load_image_with_error_return(PREFIX"/share/i3lock-next/lock-light.png", &error);
             imlib_context_set_color(255, 255, 255, 255);
-            puts("FFFFFFFF");
+            if (i == n / 2 + 1 || n == 1)
+                puts("FFFFFFFF");
         }
 
         if (!lock)

@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
 from sys import argv, getdefaultencoding
-from os import urandom, remove
+from os import getenv, path, remove, urandom
 
 from atexit import register
 from random import getrandbits
 from struct import unpack
 from subprocess import run, PIPE
+
+from configparser import ConfigParser
 
 # PREFIX and LIBDIR are set during installation of i3lock-next
 PREFIX = "/usr/local"
@@ -26,6 +28,18 @@ if len(argv) > 1 and argv[1] in {'-h', '--help'}:
         '',
         '    size        Size of font, default is 18.'
         ]))
+
+config = ConfigParser()
+config_str = '%s/.config/i3lock-next.ini' % (getenv('HOME'))
+if path.exists(config_str):
+    config.read(config_str)
+else:
+    config['Clock'] = {'Pos': 'BottomRight', 'OffsetX': '0 ',
+                       'OffsetY': '0'}
+    config['Options'] = {'NoFork': 'True', 'ShowClock': 'Yes',
+                         'IgnoreEmpty': 'Yes'}
+    with open(config_str, 'w') as config_file:
+        config.write(config_file)
 
 # set user-defined parameters or use default
 prompt = argv[1] if len(argv) > 1 else ''
@@ -69,7 +83,7 @@ with open(lock, 'rb') as lock_file:
     lock_w, lock_h = unpack('>LL', lock_file.read()[16:24])
 
 # calculate appropriate ring radius
-radius = int(1.1 * ((float((lock_w ** 2 + lock_h ** 2) / 2)) ** 0.5))
+radius = int(1.1 * (float(lock_w ** 2 + lock_h ** 2) ** 0.5) / 2)
 
 # call i3lock (should have i3lock-color installed)
 #  - prompt color is managed by i3lock-next-helper
@@ -78,25 +92,49 @@ radius = int(1.1 * ((float((lock_w ** 2 + lock_h ** 2) / 2)) ** 0.5))
 color = color.rstrip()
 font_i3lock = font_i3lock.rstrip()
 other_color = other_color.rstrip()
-run([
-    'i3lock', '-n', '-e', '--force-clock',
-    '--timepos=%d-cw:%d-ch' % (w, h),
-    '--timecolor=%s' % (color),
-    '--timefont=%s' % (font_i3lock),
-    '--timesize=%d' % (size * 2),
-    '--datecolor=%s' % (color),
-    '--datefont=%s' % (font_i3lock),
-    '--datesize=%d' % (size),
-    '--textcolor=00000000', 
-    '--linecolor=00000000',
-    '--keyhlcolor=%s80' % (color[:-2]),
-    '--separatorcolor=22222260',
-    '--insidecolor=%s1c' % (color[:-2]),
-    '--insidevercolor=%s1c' % (other_color[:-2]),
-    '--insidewrongcolor=%s1c' % (other_color[:-2]),
-    '--radius=%d' % (radius),
-    '--ringcolor=%s1c' % (color[:-2]),
-    '--ringvercolor=ffffff00',
-    '--ringwrongcolor=%s55' % (other_color[:-2]),
-    '-i%s' % (image)
-    ])
+
+offset_x = config['Clock'].getint('OffsetX')
+offset_y = config['Clock'].getint('OffsetY')
+
+clock_pos = {'TopLeft': '%d:%d' % (offset_x, offset_y),
+             'TopCenter': '%d-cw/2:%d' % (w / 2 + offset_x, offset_y),
+             'TopRight': '%d-cw:%d' % (w + offset_x, offset_y),
+             'BottomLeft': '%d:%d-ch' % (offset_x, h + offset_y),
+             'BottomCenter': '%d-cw/2:%d-ch' % (w / 2 + offset_x,
+                 h + offset_y),
+             'BottomRight': '%d-cw:%d-ch' % (w + offset_x, h + offset_y)
+             }
+
+# construct i3lock command including optional parts
+i3lock_command = ['i3lock']
+if config['Options'].getboolean('NoFork'):
+    i3lock_command.append('-n')
+if config['Options'].getboolean('IgnoreEmpty'):
+    i3lock_command.append('-e')
+if config['Options'].getboolean('ShowClock'):
+    i3lock_command.append('-k')
+    i3lock_command.append('--force-clock')
+    _ = clock_pos[config['Clock']['Pos']]
+    i3lock_command.append('--timepos=%s' % (_))
+    i3lock_command.append('--timecolor=%s' % (color))
+    i3lock_command.append('--timefont=%s' % (font_i3lock))
+    i3lock_command.append('--timesize=%d' % (size * 2))
+    i3lock_command.append('--datecolor=%s' % (color))
+    i3lock_command.append('--datefont=%s' % (font_i3lock))
+    i3lock_command.append('--datesize=%d' % (size))
+
+i3lock_command_ext = ['--textcolor=00000000', '--linecolor=00000000',
+                      '--keyhlcolor=%s80' % (color[:-2]),
+                      '--separatorcolor=22222260',
+                      '--insidecolor=%s1c' % (color[:-2]),
+                      '--insidevercolor=%s1c' % (other_color[:-2]),
+                      '--insidewrongcolor=%s1c' % (other_color[:-2]),
+                      '--radius=%d' % (radius),
+                      '--ringcolor=%s1c' % (color[:-2]),
+                      '--ringvercolor=00000000',
+                      '--ringwrongcolor=%s55' % (other_color[:-2]),
+                      '-i%s' % (image)
+                      ]
+# finally call i3lock
+i3lock_command.extend(i3lock_command_ext)
+run(i3lock_command)

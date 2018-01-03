@@ -82,6 +82,7 @@ uninstall:
 	@rm -r $(DESTDIR)$(PREFIX)$(DATAROOTDIR)/$(SCRIPT)
 	@echo Uninstall complete
 	@echo NOTE: empty directories may exist if you had nothing installed in $(DESTDIR)$(PREFIX)
+	@echo Make sure to delete i3lock-next.ini from your user\'s .config directory
 
 ## create a build for use with gdb
 debug: CFLAGS += -ggdb -Werror -pedantic-errors -DDEBUG

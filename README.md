@@ -1,12 +1,16 @@
 # i3lock-next
 
-`i3lock-next` is a bash script and C helper program much like [i3lock-fancy](https://github.com/meskarune/i3lock-fancy). i3lock-next aims to be much faster by using [Imlib2](https://docs.enlightenment.org/api/imlib2/html/index.html) rather than ImageMagick, and being written (mostly) in C.
-
-**Now with support for multiple monitors!**
+`i3lock-next` is a Python 3 script and C helper program much like [i3lock-fancy](https://github.com/meskarune/i3lock-fancy). i3lock-next aims to be much faster by using [Imlib2](https://docs.enlightenment.org/api/imlib2/html/index.html) rather than ImageMagick, and being written (mostly) in C.
 
 ![screenshot: main](media/screenshot-main.png)
 
 [video: usage](media/video-usage.mkv)
+
+## Features
+
+- Built-in support for custom lock images: the `i3lock` indicator will scale automatically.
+- Speed: `i3lock-next` is very fast because most of the image manipulation is done in C.
+- Multi-monitor support: what it says on the tin.
 
 ## Dependencies
 
