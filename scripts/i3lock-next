@@ -110,7 +110,8 @@ clock_pos = {'TopLeft': '%d:%d' % (offset_x, offset_y),
              'BottomLeft': '%d:%d-ch' % (offset_x, h + offset_y),
              'BottomCenter': '%d-cw/2:%d-ch' % (w / 2 + offset_x,
                  h + offset_y),
-             'BottomRight': '%d-cw:%d-ch' % (w + offset_x, h + offset_y)
+             'BottomRight': '%d-cw:%d-ch' % (w + offset_x, h + offset_y),
+             'Index': 'ix-cw/2:iy+%d/2' % (lock_h / 2)
              }
 
 # construct i3lock command including optional parts
