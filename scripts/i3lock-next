@@ -2,6 +2,7 @@
 
 from sys import argv, getdefaultencoding
 from os import getenv, path, remove, urandom
+import os
 
 from atexit import register
 from random import getrandbits
@@ -30,7 +31,11 @@ if len(argv) > 1 and argv[1] in {'-h', '--help'}:
         ]))
 
 config = ConfigParser()
-config_str = '%s/.config/i3lock-next.ini' % (getenv('HOME'))
+config_dir = '%s/.config/i3lock-next' % (getenv('HOME'))
+if not os.path.isdir(config_dir):
+  os.makedirs(config_dir)
+
+config_str = config_dir + "/i3lock-next.ini"
 if path.exists(config_str):
     config.read(config_str)
 else:
