@@ -43,9 +43,13 @@ else:
                        'OffsetY': '0'}
     config['Options'] = {'NoFork': 'True', 'ShowClock': 'Yes',
                          'IgnoreEmpty': 'Yes'}
+    config['Paths'] = {'LockDark': PREFIX+"/share/i3lock-next/lock-dark.png",
+                       'LockLight': PREFIX+"/share/i3lock-next/lock-light.png"}
     with open(config_str, 'w') as config_file:
         config.write(config_file)
 
+lock_path_dark = config['Paths']['LockDark']
+lock_path_light = config['Paths']['LockLight']
 # set user-defined parameters or use default
 prompt = argv[1] if len(argv) > 1 else ''
 font = argv[2] if len(argv) > 2 else 'Sans'
@@ -83,8 +87,7 @@ else:
     lock = 'lock-dark'
     other_color = '000000FF'
 
-lock = '%s/share/i3lock-next/%s.png' % (PREFIX, lock)
-with open(lock, 'rb') as lock_file:
+with open(lock_path_dark, 'rb') as lock_file:
     lock_w, lock_h = unpack('>LL', lock_file.read()[16:24])
 
 # calculate appropriate ring radius
