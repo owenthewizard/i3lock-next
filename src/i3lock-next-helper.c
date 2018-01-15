@@ -94,8 +94,11 @@ bool isCentreMonitor(int i, int N)
 
 int main(int argc, const char **argv)
 {
-    // NOTE: argv[1] is filename, argv[2] is font path, argv[3] is prompt
-    //       (prompt is optional and should be set in the script)
+    // NOTE: argv[1] is filename
+    //       argv[2] is font path
+    //       argv[3] is path for dark lock image
+    //       argv[4] is path for light lock image
+    //       argv[5] is prompt (prompt is optional and should be set in the script)
 
     // error messages
     const char i3lockerr[]      =  "i3lock-next-helper: error:";
@@ -107,14 +110,14 @@ int main(int argc, const char **argv)
     const char saveimgerr[]     =  "can't save image";
 
     // only take two required arguments
-    if (argc < 3 || argc > 4)
+    if (argc < 5 || argc > 6)
     {
         fprintf(stderr, "%s %s\n", i3lockerr, wrongargs);
         return 1;
     }
 
     // set main prompt (default: none)
-    const char *prompt = (argc == 4)? argv[3] : "";
+    const char *prompt = (argc == 6)? argv[5] : "";
     D_PRINTF("Prompt: %s\n", prompt);
 
     // get current display or default to display :0
@@ -301,16 +304,16 @@ int main(int argc, const char **argv)
         // determine which lock image to load based on monitor colour
         if (values[i] * 100 >= THRESHOLD)
         {
-            D_PRINTPERM(PREFIX"/share/i3lock-next/lock-dark.png");
-            lock = imlib_load_image_with_error_return(PREFIX"/share/i3lock-next/lock-dark.png", &error);
+            D_PRINTPERM(argv[3]);
+            lock = imlib_load_image_with_error_return(argv[3], &error);
             imlib_context_set_color(0, 0, 0, 255);
             if (isCentreMonitor(i,n))
                 puts("000000FF");
         }
         else
         {
-            D_PRINTPERM(PREFIX"/share/i3lock-next/lock-light.png");
-            lock = imlib_load_image_with_error_return(PREFIX"/share/i3lock-next/lock-light.png", &error);
+            D_PRINTPERM(argv[4]);
+            lock = imlib_load_image_with_error_return(argv[4], &error);
             imlib_context_set_color(255, 255, 255, 255);
             if (isCentreMonitor(i,n))
                 puts("FFFFFFFF");

@@ -72,7 +72,7 @@ register(lambda f: remove(f), image)
 # variables to keep lines < 72 characters
 helper = '%s%s/i3lock-next/i3lock-next-helper' % (PREFIX, LIBDIR)
 font = '%s/%d' % (font, size)
-color = run([helper, image, font, prompt], stdout=PIPE)
+color = run([helper, image, font, lock_path_dark, lock_path_light, prompt], stdout=PIPE)
 color = color.stdout.decode(getdefaultencoding())
 
 # get image size
