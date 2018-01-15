@@ -9,6 +9,7 @@
 /* Standard */
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 /* X11 */
 #include <X11/Xlib.h>
@@ -81,6 +82,14 @@ static const char * imlib_error_as_str(Imlib_Load_Error e)
     }
 
     return "undefined error";
+}
+
+bool isCentreMonitor(int i, int N)
+{
+    if ((N == 1) || (i == N/2))
+        return true;
+    else
+        return false;
 }
 
 int main(int argc, const char **argv)
@@ -295,7 +304,7 @@ int main(int argc, const char **argv)
             D_PRINTPERM(PREFIX"/share/i3lock-next/lock-dark.png");
             lock = imlib_load_image_with_error_return(PREFIX"/share/i3lock-next/lock-dark.png", &error);
             imlib_context_set_color(0, 0, 0, 255);
-            if (i == n / 2 + 1 || n == 1)
+            if (isCentreMonitor(i,n))
                 puts("000000FF");
         }
         else
@@ -303,7 +312,7 @@ int main(int argc, const char **argv)
             D_PRINTPERM(PREFIX"/share/i3lock-next/lock-light.png");
             lock = imlib_load_image_with_error_return(PREFIX"/share/i3lock-next/lock-light.png", &error);
             imlib_context_set_color(255, 255, 255, 255);
-            if (i == n / 2 + 1 || n == 1)
+            if (isCentreMonitor(i,n))
                 puts("FFFFFFFF");
         }
 
