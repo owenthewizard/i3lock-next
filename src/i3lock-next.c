@@ -19,8 +19,11 @@
 /* MagickWand */
 #include <MagickWand/MagickWand.h>
 
-/* Argument Parsing (and config) */
+/* Argument Parsing */
 #include "i3lock-next.yucc"
+
+/* Config */
+#include "config.h"
 
 /* Debug */
 #ifdef DEBUG
@@ -37,6 +40,9 @@ void blur(MagickWand *wand, const char *radius, const char *sigma,
           const char *scale, const char *filter)
 {
     //establish filter
+    D_PRINTF("Filter: %s", filter);
+    if (!filter)
+        D_PRINTF("Using default filter");
     FilterType resize_filter = DEFAULT_FILTER;
     if (filter)
     {
@@ -68,18 +74,26 @@ void blur(MagickWand *wand, const char *radius, const char *sigma,
     }
 
     //establish other values
+    D_PRINTF("Blur radius: %s", radius);
+    if (!radius)
+        D_PRINTF("Using default radius");
     double blur_radius = (radius)? strtod(radius, NULL) : DEFAULT_RADIUS;
+    D_PRINTF("Blur sigma: %s", sigma);
+    if (!sigma)
+        D_PRINTF("Using default sigma");
     double blur_sigma = (sigma)? strtod(sigma, NULL) : DEFAULT_SIGMA;
+    D_PRINTF("Scale factor: %s", scale);
+    if (!scale)
+        D_PRINTF("Using default scale");
     long int blur_scale = (scale)? strtol(scale, NULL, 10) : DEFAULT_SCALE;
     size_t width_large = MagickGetImageWidth(wand);
+    D_PRINTF("Screenshot width: %zu", width_large);
     size_t height_large = MagickGetImageHeight(wand);
+    D_PRINTF("Screenshot height: %zu", height_large);
     size_t width_small = width_large / blur_scale;
+    D_PRINTF("Scaled width: %zu", width_small);
     size_t height_small = height_large / blur_scale;
-
-    printf("radius:%f sigma:%f\n", blur_radius, blur_sigma);
-    printf("width_small:%d, height_small:%d\n", width_small, height_small);
-    printf("width_large:%d, height_large:%d\n", width_large, height_large);
-    printf("scale: %d\n", blur_scale);
+    D_PRINTF("Scaled height: %zu", height_small);
 
     //scale down
     MagickResizeImage(wand, width_small, height_small, resize_filter);
@@ -106,6 +120,9 @@ int main(int argc, char **argv)
     MagickReadImage(wand, "x:root");
 
     //find out what we want to do
+    D_PRINTF("Distort set to: %s", argp->method_arg);
+    if (!argp->method_arg)
+        D_PRINTF("Using default distortion");
     typedef enum {BLUR, PIXELATE, NONE} Method;
     Method distort = DEFAULT_METHOD;
     if (argp->method_arg)
@@ -146,6 +163,9 @@ int main(int argc, char **argv)
     //add lock images
     //TODO
     //XXX multiple monitors
+
+    //call i3lock
+    //TODO
 
     //write out result
     ///: sizeof(char)

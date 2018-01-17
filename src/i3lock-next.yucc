@@ -3,7 +3,6 @@
 #define INCLUDED_yuck_h_
 
 #include <stddef.h>
-#include "config.h"
 
 #define YUCK_OPTARG_NONE	((void*)0x1U)
 
