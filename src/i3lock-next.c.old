@@ -1,0 +1,122 @@
+/*
+ * i3lock-next.c
+ * This program takes a screenshot and applies a distortion
+ * effect specified by the user.
+ *
+ */
+
+/* Standard */
+#include <stdlib.h>
+#include <stdio.h>
+
+/* XCB */
+//#include <xcb/xcb.h>
+
+/* MagickWand */
+#include <MagickWand/MagickWand.h>
+
+/* Argument Parsing (and config) */
+#include "i3lock-next.yucc"
+
+/* Strings */
+#include <string.h>
+
+/* POSIX */
+#include <unistd.h>
+
+/* Debug */
+#ifdef DEBUG
+    #define D_PRINTF(fmt, ...) fprintf(stderr, "DEBUG: %s: %d: %s(): " fmt, \
+                                        __FILE__, __LINE__, __func__,       \
+                                        __VA_ARGS__);
+    /* POSIX */
+    #include <unistd.h>
+#else
+    #define D_PRINTF(fmt, ...) do{ } while (0)
+#endif
+
+void blur(MagickWand *wand, char radius, char sigma, char scale, char filter)
+{
+    size_t width_large, height_large;
+    MagickBooleanType status;
+    status = MagickGetSize(wand, &width_large, &height_large);
+    const size_t width_small = width_large / (long)scale;
+    const size_t height_small = height_large / (long)scale;
+    FilterType resize_filter;
+    const char *filter_tmp = (filter == NULL)? DEFAULT_FILTER : filter;
+    if (strcmp(filter_tmp, "Jinc") == 0)
+        resize_filter = JincFilter;
+    else if (strcmp(filter_tmp, "Blackman") == 0)
+        resize_filter = BlackmanFilter;
+    else if (strcmp(filter_tmp, "Box") == 0)
+        resize_filter = BoxFilter;
+    else if (strcmp(filter_tmp, "Catrom") == 0)
+        resize_filter = CatromFilter;
+    else if (strcmp(filter_tmp, "Hanning") == 0)
+        resize_filter = HanningFilter;
+    else if (strcmp(filter_tmp, "Hermite") == 0)
+        resize_filter = HermiteFilter;
+    else if (strcmp(filter_tmp, "Lanczos") == 0)
+        resize_filter = LanczosFilter;
+    else if (strcmp(filter_tmp, "Mitchell") == 0)
+        resize_filter = MitchellFilter;
+    else if (strcmp(filter_tmp, "Sinc") == 0)
+        resize_filter = SincFilter;
+    else if (strcmp(filter_tmp, "Triangle") == 0)
+        resize_filter = TriangleFilter;
+    else
+        fprintf(stderr, "%s: %d: %s(): Something wrong happened...", 
+                __FILE__, __LINE__, __func__);
+    status = MagickResizeImage(wand, width_small, height_small, resize_filter);
+    const double blur_radius = (radius == NULL)?
+        DEFAULT_RADIUS : (double) radius;
+    const double blur_sigma = (sigma == NULL)?
+        DEFAULT_SIGMA : (double) sigma;
+    status = MagickGaussianBlurImage(wand, blur_radius, blur_sigma);
+    status = MagickResizeImage(wand, width_large, height_large, resize_filter);
+}
+
+int main(int argc, char *argv[])
+{
+    //parse arguments
+    //generated via: yuck gen i3lock-next.yuck > i3lock-next.yucc
+    yuck_t argp[1];
+    yuck_parse(argp, argc, argv);
+
+    //init wand
+    MagickWandGenesis();
+    MagickWand *wand = NewMagickWand();
+
+    //take screenshot
+    MagickReadImage(wand, "x:root");
+
+    //decide where to go from here
+    const char *operation = (argp->method_arg == NULL)?
+        DEFAULT_METHOD : argp->method_arg;
+    if (strcmp(operation, "blur") == 0)
+        blur(wand, argp->radius_arg, argp->sigma_arg,
+            argp->scale_factor_arg, argp->filter_arg);
+    else if (strcmp(operation, "pixelate") == 0)
+        pixelate(wand, argp->scale_factor_arg, argp->filter_arg);
+    else
+        fprintf(stderr, "%s: %d: %s(): Something wrong happened...", 
+                __FILE__, __LINE__, __func__);
+
+    //TODO: gamma, lock icon, etc.
+    
+    //write out result
+    char *file_name = malloc(sizeof(char)*19);
+    *file_name = "i3lock-next.XXXXXX";
+    FILE *output = mkstemp(file_name);
+    MagickWriteImageFile(wand, file_name);
+    puts(file_name);
+
+    //cleanup
+    free(output);
+    free(file_name);
+    wand = DestroyMagickWand(wand);
+    MagickWandTerminus();
+    yuck_free(argp);
+}
+
+// vim: set colorcolumn=80 :

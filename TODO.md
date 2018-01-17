@@ -1,13 +1,14 @@
 # TODO
+
+In no particular order
+
 - [ ] use GNU gettext
-- [x] cleanup code, improve readability
-- [x] use light/dark lock images depending on background
-- [x] add image demo
-- [x] usage section in README.md
-- [x] proper Makefile
-- [ ] proper Makefile (autotools)
-- [ ] Arch PKGBUILD
-- [ ] use xcb instead of Xlib
-- [x] be and idiot and mess up pull requests and branches
-- [ ] record new video
 - [ ] add new media
+- [ ] add package templates (PKGBUILD, ebuild, ...)
+- [ ] manpage
+- [ ] inform about transparency bug in manpage
+- [ ] default values in `-h`
+- [ ] Makefile
+- [ ] finish i3lock-next.c
+- [ ] incorporate commits from #15
+- [ ] fix i3lock-next.yuck

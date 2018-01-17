@@ -1,47 +1,64 @@
 /*
  * config.h
- * Various settings for i3lock-next-helper.c
+ * Various settings for i3lock-next.c
  *
  */
 
-/* GAMMA_ADJUST
+/* DEFAULT_GAMMA
  * The amount to brighten or darken the image
  * Min 0.0
  * Greater than 1.0 is lighter, less than 1.0 is darker
  * Default 0.5
  *
  */
-#define GAMMA_ADJUST 0.5
+#define DEFAULT_GAMMA 0.5
 
-/* SCALE_FACTOR
+/* DEFAULT_SCALE
  * Factor to scale the image by for faux-blur
  * Divides 1 to create a percentage
  * Default 5 (20%)
  *
  */
-#define SCALE_FACTOR 5
+#define DEFAULT_SCALE 5
 
-/* BLUR_ITERATIONS
- * How many times to blur the image
+/* DEFAULT_RADIUS
+ * Radius for gaussian blur
  * Higher values take longer
- * Default 3
+ * Default 3.0
  *
  */
-#define BLUR_ITERATIONS 3
+#define DEFAULT_RADIUS 3.0
 
-/* BLUR_STRENGTH
- * How much blur is applied each iteration
+/* DEFAULT_SIGMA
+ * Sigma for guassian blur
  * Higher values take longer
- * Default 1
+ * Default 1.5
  *
  */
-#define BLUR_STRENGTH 1
+#define DEFAULT_SIGMA 1.5
 
-/* THRESHOLD
+/* DEFAULT_THRESH
  * Threshold between light and dark backgrounds
  * If the average image value is greater than this, the dark lock image is used
  * If the average image value is less than this, the light lock image is used
  * Default 50
  *
  */
-#define THRESHOLD 50
+#define DEFAULT_THRESH 50
+
+/* DEFAULT_METHOD
+ * Method for distortion of image
+ * Must be BLUR, PIXELATE, or NONE
+ * Default BLUR
+ *
+ */
+#define DEFAULT_METHOD BLUR
+
+/* DEFAULT_FILTER
+ * Filter to use during image resize
+ * Must be Bessel, Blackman, Box, Catrom, CubicGaussian, Hanning, Hermite,
+ * Lanczos, Mitchell, PointQuadratic, Sinc, or Triangle
+ * Default Lanczos
+ *
+ */
+#define DEFAULT_FILTER LanczosFilter
