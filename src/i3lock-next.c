@@ -40,9 +40,9 @@ void blur(MagickWand *wand, const char *radius, const char *sigma,
           const char *scale, const char *filter)
 {
     //establish filter
-    D_PRINTF("Filter: %s", filter);
+    D_PRINTF("Filter: %s\n", filter);
     if (!filter)
-        D_PRINTF("Using default filter");
+        D_PRINTF("%s\n", "Using default filter");
     FilterType resize_filter = DEFAULT_FILTER;
     if (filter)
     {
@@ -74,26 +74,26 @@ void blur(MagickWand *wand, const char *radius, const char *sigma,
     }
 
     //establish other values
-    D_PRINTF("Blur radius: %s", radius);
+    D_PRINTF("Blur radius: %s\n", radius);
     if (!radius)
-        D_PRINTF("Using default radius");
+        D_PRINTF("%s\n", "Using default radius");
     double blur_radius = (radius)? strtod(radius, NULL) : DEFAULT_RADIUS;
-    D_PRINTF("Blur sigma: %s", sigma);
+    D_PRINTF("Blur sigma: %s\n", sigma);
     if (!sigma)
-        D_PRINTF("Using default sigma");
+        D_PRINTF("%s\n", "Using default sigma");
     double blur_sigma = (sigma)? strtod(sigma, NULL) : DEFAULT_SIGMA;
-    D_PRINTF("Scale factor: %s", scale);
+    D_PRINTF("Scale factor: %s\n", scale);
     if (!scale)
-        D_PRINTF("Using default scale");
+        D_PRINTF("%s\n", "Using default scale");
     long int blur_scale = (scale)? strtol(scale, NULL, 10) : DEFAULT_SCALE;
     size_t width_large = MagickGetImageWidth(wand);
-    D_PRINTF("Screenshot width: %zu", width_large);
+    D_PRINTF("Screenshot width: %zu\n", width_large);
     size_t height_large = MagickGetImageHeight(wand);
-    D_PRINTF("Screenshot height: %zu", height_large);
+    D_PRINTF("Screenshot height: %zu\n", height_large);
     size_t width_small = width_large / blur_scale;
-    D_PRINTF("Scaled width: %zu", width_small);
+    D_PRINTF("Scaled width: %zu\n", width_small);
     size_t height_small = height_large / blur_scale;
-    D_PRINTF("Scaled height: %zu", height_small);
+    D_PRINTF("Scaled height: %zu\n", height_small);
 
     //scale down
     MagickResizeImage(wand, width_small, height_small, resize_filter);
@@ -120,9 +120,9 @@ int main(int argc, char **argv)
     MagickReadImage(wand, "x:root");
 
     //find out what we want to do
-    D_PRINTF("Distort set to: %s", argp->method_arg);
+    D_PRINTF("Distort set to: %s\n", argp->method_arg);
     if (!argp->method_arg)
-        D_PRINTF("Using default distortion");
+        D_PRINTF("%s\n", "Using default distortion");
     typedef enum {BLUR, PIXELATE, NONE} Method;
     Method distort = DEFAULT_METHOD;
     if (argp->method_arg)
@@ -145,14 +145,14 @@ int main(int argc, char **argv)
     switch(distort)
     {
         case BLUR:
-            D_PRINTF("Applying blur");
+            D_PRINTF("%s\n", "Applying blur");
             blur(wand, argp->radius_arg,
                  argp->sigma_arg,
                  argp->scale_factor_arg,
                  argp->filter_arg);
             break;
         case PIXELATE:
-            D_PRINTF("Applying pixelation");
+            D_PRINTF("%s\n", "Applying pixelation");
             //TODO: pixelate
             break;
         case NONE:
@@ -182,11 +182,11 @@ int main(int argc, char **argv)
         strcpy(file_name, P_tmpdir);
         strcat(file_name, "/i3lock-next.XXXXXX.png");
         fd = mkstemps(file_name, 4);
-        D_PRINTF("Opening %s for writing", file_name);
+        D_PRINTF("Opening %s for writing\n", file_name);
         output = fdopen(fd, "w");
-        D_PRINTF("Writing output to: %s", file_name);
+        D_PRINTF("Writing output to: %s\n", file_name);
         MagickWriteImageFile(wand, output);
-        D_PRINTF("Closing %s", file_name);
+        D_PRINTF("Closing %s\n", file_name);
         fclose(output);
         puts(file_name);
         free(file_name);
@@ -198,7 +198,7 @@ int main(int argc, char **argv)
     }
 
     //cleanup
-    D_PRINTF("Cleaning up");
+    D_PRINTF("%s\n", "Cleaning up");
     wand = DestroyMagickWand(wand);
     MagickWandTerminus();
     yuck_free(argp);
