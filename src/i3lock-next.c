@@ -76,15 +76,15 @@ void blur(MagickWand *wand, const char *radius, const char *sigma,
     //establish other values
     D_PRINTF("Blur radius: %s\n", radius);
     if (!radius)
-        D_PRINTF("%s\n", "Using default radius");
+        D_PRINTF("Using default radius: %f\n", DEFAULT_RADIUS);
     double blur_radius = (radius)? strtod(radius, NULL) : DEFAULT_RADIUS;
     D_PRINTF("Blur sigma: %s\n", sigma);
     if (!sigma)
-        D_PRINTF("%s\n", "Using default sigma");
+        D_PRINTF("Using default sigma: %f\n", DEFAULT_SIGMA);
     double blur_sigma = (sigma)? strtod(sigma, NULL) : DEFAULT_SIGMA;
     D_PRINTF("Scale factor: %s\n", scale);
     if (!scale)
-        D_PRINTF("%s\n", "Using default scale");
+        D_PRINTF("Using default scale: %d\n", DEFAULT_SCALE);
     long int blur_scale = (scale)? strtol(scale, NULL, 10) : DEFAULT_SCALE;
     size_t width_large = MagickGetImageWidth(wand);
     D_PRINTF("Screenshot width: %zu\n", width_large);
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
     //apply gamma adjust
     D_PRINTF("Gamma: %s\n", argp->gamma_arg);
     if (!argp->gamma_arg)
-        D_PRINTF("%s\n", "Using default gamma");
+        D_PRINTF("Using default gamma: %f\n", DEFAULT_GAMMA);
     double gamma = (argp->gamma_arg)?
         strtod(argp->gamma_arg, NULL) : DEFAULT_GAMMA;
     MagickGammaImage(wand, gamma);
