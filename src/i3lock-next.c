@@ -46,25 +46,25 @@ void blur(MagickWand *wand, const char *radius, const char *sigma,
     FilterType resize_filter = DEFAULT_FILTER;
     if (filter)
     {
-        if (strcmp(filter, "Jinc") == 0)
+        if (strcasecmp(filter, "Jinc") == 0)
         resize_filter = JincFilter;
-        else if (strcmp(filter, "Blackman") == 0)
+        else if (strcasecmp(filter, "Blackman") == 0)
             resize_filter = BlackmanFilter;
-        else if (strcmp(filter, "Box") == 0)
+        else if (strcasecmp(filter, "Box") == 0)
             resize_filter = BoxFilter;
-        else if (strcmp(filter, "Catrom") == 0)
+        else if (strcasecmp(filter, "Catrom") == 0)
             resize_filter = CatromFilter;
-        else if (strcmp(filter, "Hanning") == 0)
+        else if (strcasecmp(filter, "Hanning") == 0)
             resize_filter = HanningFilter;
-        else if (strcmp(filter, "Hermite") == 0)
+        else if (strcasecmp(filter, "Hermite") == 0)
             resize_filter = HermiteFilter;
-        else if (strcmp(filter, "Lanczos") == 0)
+        else if (strcasecmp(filter, "Lanczos") == 0)
             resize_filter = LanczosFilter;
-        else if (strcmp(filter, "Mitchell") == 0)
+        else if (strcasecmp(filter, "Mitchell") == 0)
             resize_filter = MitchellFilter;
-        else if (strcmp(filter, "Sinc") == 0)
+        else if (strcasecmp(filter, "Sinc") == 0)
             resize_filter = SincFilter;
-        else if (strcmp(filter, "Triangle") == 0)
+        else if (strcasecmp(filter, "Triangle") == 0)
             resize_filter = TriangleFilter;
         else
         {
@@ -127,11 +127,11 @@ int main(int argc, char **argv)
     Method distort = DEFAULT_METHOD;
     if (argp->method_arg)
     {
-        if (strcmp(argp->method_arg, "blur") == 0)
+        if (strcasecmp(argp->method_arg, "blur") == 0)
             distort = BLUR;
-        else if (strcmp(argp->method_arg, "pixelate") == 0)
+        else if (strcasecmp(argp->method_arg, "pixelate") == 0)
             distort = PIXELATE;
-        else if (strcmp(argp->method_arg, "none") == 0)
+        else if (strcasecmp(argp->method_arg, "none") == 0)
             distort = NONE;
         else
         {
