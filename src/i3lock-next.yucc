@@ -36,7 +36,6 @@ struct yuck_s {
 
 	/* help is handled automatically */
 	/* version is handled automatically */
-	unsigned int g_flag;
 	char *method_arg;
 	char *radius_arg;
 	char *sigma_arg;
@@ -228,8 +227,6 @@ static int yuck_parse(yuck_t tgt[static 1U], int argc, char *argv[])
 				/* invoke auto action and exit */
 				yuck_auto_version(tgt);
 				goto success;
-			} else if (yuck_streqp(op, "g")) {
-				tgt->g_flag++; goto xtra_chk;
 			} else if (yuck_streqp(op, "method")) {
 				tgt->method_arg = arg ?: argv[++i];
 			} else if (yuck_streqp(op, "radius")) {
@@ -423,7 +420,6 @@ static void yuck_free(yuck_t tgt[static 1U])
 ;
 ;
 ;
-;
 		break;
 	}
 	return;
@@ -435,6 +431,10 @@ static void yuck_auto_usage(const yuck_t src[static 1U])
 	default:
 	YUCK_NOCMD:
 		puts("Usage: i3lock-next [OPTION]...\n\
+\n\
+Generate a fancy screenshot and call i3lock.\n\
+\n\
+Arguments after -- are ignored by i3lock-next and passed to i3lock.\n\
 ");
 		break;
 
@@ -462,8 +462,6 @@ static void yuck_auto_help(const yuck_t src[static 1U])
 		puts("\
   -h, --help            display this help and exit\n\
   -V, --version         output version information and exit\n\
-      --g               AMOUNT] [-f FILTER] [-t THRESH] [-i FILE]\n\
-                        [-d FILE]\n\
   -m, --method=METHOD   Distort the screenshot using METHOD. METHOD can\n\
                         be one of: blur, pixelate, or none. This version\n\
                         was compiled with DEFAULT_METHOD as default.\n\
