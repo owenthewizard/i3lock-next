@@ -145,12 +145,14 @@ int main(int argc, char **argv)
     switch(distort)
     {
         case BLUR:
+            D_PRINTF("Applying blur");
             blur(wand, argp->radius_arg,
                  argp->sigma_arg,
                  argp->scale_factor_arg,
                  argp->filter_arg);
             break;
         case PIXELATE:
+            D_PRINTF("Applying pixelation");
             //TODO: pixelate
             break;
         case NONE:
@@ -180,8 +182,11 @@ int main(int argc, char **argv)
         strcpy(file_name, P_tmpdir);
         strcat(file_name, "/i3lock-next.XXXXXX.png");
         fd = mkstemps(file_name, 4);
+        D_PRINTF("Opening %s for writing", file_name);
         output = fdopen(fd, "w");
+        D_PRINTF("Writing output to: %s", file_name);
         MagickWriteImageFile(wand, output);
+        D_PRINTF("Closing %s", file_name);
         fclose(output);
         puts(file_name);
         free(file_name);
@@ -193,6 +198,7 @@ int main(int argc, char **argv)
     }
 
     //cleanup
+    D_PRINTF("Cleaning up");
     wand = DestroyMagickWand(wand);
     MagickWandTerminus();
     yuck_free(argp);
