@@ -160,7 +160,13 @@ int main(int argc, char **argv)
     }
 
     //apply gamma adjust
-    //TODO
+    D_PRINTF("Gamma: %s\n", argp->gamma_arg);
+    if (!argp->gamma_arg)
+        D_PRINTF("%s\n", "Using default gamma");
+    double gamma = (argp->gamma_arg)?
+        strtod(argp->gamma_arg, NULL) : DEFAULT_GAMMA;
+    MagickGammaImage(wand, gamma);
+
 
     //add lock images
     //TODO
