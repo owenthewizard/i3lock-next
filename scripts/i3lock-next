@@ -50,7 +50,7 @@ trap 'rm -f ${_image}' EXIT
 
 # call i3lock-next-helper (variable to keep lines below 72 characters)
 _i3lock_next_helper="${PREFIX}/${LIBDIR}/i3lock-next/i3lock-next-helper"
-_datetimecolor=$($_i3lock_next_helper ${_image} "${_font}"/"${_size}" "${_prompt}") # oops
+_datetimecolor=$($_i3lock_next_helper ${_image} "${_font}"/"${_size}" "${_prompt}" | sed -n '2{p;q}')
 
 # get some values we need
 _wxh="$(${PREFIX}/${LIBDIR}/i3lock-next/image-size ${_image})"
