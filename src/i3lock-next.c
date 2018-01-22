@@ -14,7 +14,6 @@
 
 /* Data Types */
 #include <stdbool.h>
-#include <stdint.h>
 #include <string.h>
 
 /* X11 */
@@ -39,13 +38,18 @@
     #define D_PRINTF(fmt, ...) do{ } while (0)
 #endif
 
-static int status;
-
-void die(char *message, int error)
+void die(const char *message, const int error)
 {
     fprintf(stderr, "i3lock-next: error: %s\n", message);
     exit(error);
 }
+
+/*
+void get_distort(char *distort, Method *m)
+{
+
+}
+*/
 
 int get_monitor_count(Display *d)
 {
@@ -55,15 +59,15 @@ int get_monitor_count(Display *d)
     return n;
 }
 
-void get_monitor_offsets(Display *d, int monitors,
+void get_monitor_offsets(Display *d, const int monitors,
                          ssize_t *offsets_x, ssize_t *offsets_y,
-                         size_t lock_w, size_t lock_h)
+                         const size_t lock_w, const size_t lock_h)
 {
     XRRScreenResources *screens =
         XRRGetScreenResources(d, DefaultRootWindow(d));
 
     XRRCrtcInfo *screen;
-    for (int i = 0; i < monitors; i++)
+    for (signed int i = 0; i < monitors; i++)
     {
         screen = XRRGetCrtcInfo(d, screens, screens->crtcs[i]);
 
@@ -111,10 +115,8 @@ void blur(MagickWand *wand, const char *radius,
     MagickResizeImage(wand, width_large, height_large, MitchellFilter);
 }
 
-int main(int argc, char **argv)
+int main(const int argc, char *argv[])
 {
-    status = 0;
-
     //parse arguments
     yuck_t argp[1];
     yuck_parse(argp, argc, argv);
@@ -132,7 +134,8 @@ int main(int argc, char **argv)
     if (!argp->method_arg)
         D_PRINTF("%s\n", "Using default distortion");
     typedef enum {BLUR, PIXELATE, NONE} Method;
-    Method distort = DEFAULT_METHOD;
+    Method distort;
+    //get_distort(argp->method_arg &distort);
     if (argp->method_arg)
     {
         if (strcasecmp(argp->method_arg, "blur") == 0)
@@ -143,11 +146,14 @@ int main(int argc, char **argv)
             distort = NONE;
         else
         {
-            fprintf(stderr, "%s\n",
-                    "error: METHOD must be one of blur, pixelate, or none.");
-            status = 10;
+            wand = DestroyMagickWand(wand);
+            MagickWandTerminus();
+            yuck_free(argp);
+            die("METHOD must be any-of (blur, pixelate, none)", 10);
         }
     }
+    else
+        distort = DEFAULT_METHOD;
 
     //do it
     switch(distort)
@@ -158,10 +164,12 @@ int main(int argc, char **argv)
                  argp->sigma_arg,
                  argp->scale_factor_arg);
             break;
+
         case PIXELATE:
             D_PRINTF("%s\n", "Applying pixelation");
             //TODO: pixelate
             break;
+
         case NONE:
             break;
     }
@@ -176,7 +184,6 @@ int main(int argc, char **argv)
 
 
     //add lock images
-    /*
     char *lock_image_l, *lock_image_d;
 
     if (argp->lock_light_arg)
@@ -187,8 +194,10 @@ int main(int argc, char **argv)
             strcpy(lock_image_l, argp->lock_light_arg);
         else
         {
-            fprintf(stderr, "%s\n", "error: malloc failed!");
-            status = 20;
+            wand = DestroyMagickWand(wand);
+            MagickWandTerminus();
+            yuck_free(argp);
+            die("malloc failed", 20);
         }
     }
     else
@@ -199,8 +208,10 @@ int main(int argc, char **argv)
             strcpy(lock_image_l, DEFAULT_LOCK_LIGHT);
         else
         {
-            fprintf(stderr, "%s\n", "error: malloc failed!");
-            status = 20;
+            wand = DestroyMagickWand(wand);
+            MagickWandTerminus();
+            yuck_free(argp);
+            die("malloc failed", 20);
         }
     }
 
@@ -212,8 +223,10 @@ int main(int argc, char **argv)
             strcpy(lock_image_d, argp->lock_dark_arg);
         else
         {
-            fprintf(stderr, "%s\n", "error: malloc failed!");
-            status = 20;
+            wand = DestroyMagickWand(wand);
+            MagickWandTerminus();
+            yuck_free(argp);
+            die("malloc failed", 20);
         }
     }
     else
@@ -224,8 +237,10 @@ int main(int argc, char **argv)
             strcpy(lock_image_d, DEFAULT_LOCK_DARK);
         else
         {
-            fprintf(stderr, "%s\n", "error: malloc failed!");
-            status = 20;
+            wand = DestroyMagickWand(wand);
+            MagickWandTerminus();
+            yuck_free(argp);
+            die("malloc failed", 20);
         }
     }
 
@@ -234,109 +249,78 @@ int main(int argc, char **argv)
     MagickReadImage(wand_lock_l, lock_image_l);
     MagickReadImage(wand_lock_d, lock_image_d);
 
-    //TODO: Put getMonitors() here
-
-    MagickWand *wand_cropped;
-    PixelWand *center;
-    PixelIterator *pixel_iter;
+    MagickWand *wand_cropped = NULL;
+    PixelWand *center = NewPixelWand();
 
     double threshold = (argp->threshold_arg)?
         strtod(argp->threshold_arg, NULL) : DEFAULT_THRESH;
 
-    get_monitor_offsets(offsets_x, offsets_y, screens, lock_w, lock_h);
-    for (int i = 0; i < screens; i++)
+    size_t lock_w = MagickGetImageWidth(wand_lock_l);
+    size_t lock_h = MagickGetImageHeight(wand_lock_l);
+
+    //open display
+    //if you want to use xcb instead of Xlib then write some decent
+    //documentation or submit a PR
+    Display *disp = XOpenDisplay(NULL);
+    if (!disp)
+        die("can't open display", 30);
+
+    signed int monitors = get_monitor_count(disp);
+
+    ssize_t offsets_x[monitors], offsets_y[monitors];
+    get_monitor_offsets(disp, monitors, offsets_x, offsets_y, lock_w, lock_h);
+
+    XCloseDisplay(disp);
+
+    for (signed int i = 0; i < monitors; i++)
     {
         wand_cropped = CloneMagickWand(wand);
         //light/dark calculation a bit messed up because we use the offsets
         //for the lock drawing instead of using our own
         MagickCropImage(wand_cropped, lock_w * 2, lock_h * 2,
                         offsets_x[i], offsets_y[i]);
-        MagickResizeImage(wand_cropped, lock_w, lock_h, filter);
-        pixel_iter = NewPixelIterator(wand_cropped);
-        center = NewPixelRegionIterator(wand_cropped,
-                                        lock_w / 2, lock_h / 2,
-                                        1, 1);
-        double value;
-        PixelGetHSL(center, NULL, NULL, &value);
+        MagickResizeImage(wand_cropped, lock_w, lock_h, LanczosFilter);
+        MagickGetImagePixelColor(wand_cropped, lock_w / 2, lock_h / 2, center);
+        double h, s, l;
+        PixelGetHSL(center, &h, &s, &l);
 
-        if (value * 100 >= threshold)
+        ClearMagickWand(wand_cropped);
+        ClearPixelWand(center);
+
+        if (l * 100 >= threshold)
             MagickCompositeImage(wand, wand_lock_d, OverCompositeOp, MagickFalse,
                                  offsets_x[i], offsets_y[i]);
         else
             MagickCompositeImage(wand, wand_lock_l, OverCompositeOp, MagickFalse,
                                  offsets_x[i], offsets_y[i]);
     }
-
-    if (lock_image_l)
-        free(lock_image_l);
-    if (lock_image_d)
-        free(lock_image_d);
-    if (IsPixelWand(center))
-        center = DestroyPixelWand(center);
-    if (IsMagickWand(wand_cropped))
+    if (wand_cropped != NULL)
         wand_cropped = DestroyMagickWand(wand_cropped);
-    if (IsMagickWand(wand_lock_l))
-        wand_lock_l = DestroyMagickWand(wand_lock_l);
-    if (IsMagickWand(wand_lock_d))
-            wand_lock_d = DestroyMagickWand(wand_lock_d);
-    */
+    center = DestroyPixelWand(center);
+    wand_lock_l = DestroyMagickWand(wand_lock_l);
+    wand_lock_d = DestroyMagickWand(wand_lock_d);
+
+    free(lock_image_l);
+    free(lock_image_d);
 
     //call i3lock
     //TODO
 
     //write out result
-    ///: sizeof(char)
-    //i3lock-next.XXXXXX.png: sizeof(char) * 22
-    //\0: sizeof(char)
-    char *file_name = malloc(sizeof(char) * 24
-                      + strlen(P_tmpdir) * sizeof(char));
-    FILE *output;
-    int fd;
-    if (file_name)
-    {
-        strcpy(file_name, P_tmpdir);
-        strcat(file_name, "/i3lock-next.XXXXXX.png");
-        fd = mkstemps(file_name, 4);
-        D_PRINTF("Opening %s for writing\n", file_name);
-        output = fdopen(fd, "w");
-        D_PRINTF("Writing output to: %s\n", file_name);
-        MagickWriteImageFile(wand, output);
-        D_PRINTF("Closing %s\n", file_name);
-        fclose(output);
-        puts(file_name);
-        free(file_name);
-    }
-    else
-    {
-        fprintf(stderr, "%s\n", "error: malloc failed!");
-        status = 20;
-    }
+    char file_name[] = P_tmpdir"/i3lock-next.XXXXXX.png";
+    D_PRINTF("Opening %s for writing\n", file_name);
+    FILE *output = fdopen(mkstemps(file_name, 4), "w");
+    D_PRINTF("Writing output to: %s\n", file_name);
+    MagickWriteImageFile(wand, output);
+    D_PRINTF("Closing %s\n", file_name);
+    fclose(output);
+    puts(file_name);
 
     //cleanup
     D_PRINTF("%s\n", "Cleaning up");
     wand = DestroyMagickWand(wand);
     MagickWandTerminus();
     yuck_free(argp);
-    return status;
 }
-
-/*
-int main()
-{
-    //open display
-    //if you want to use xcb instead of Xlib then write some decent
-    //documentation or submit a PR
-    Display *disp = XOpenDisplay(NULL);
-    if (!disp)
-        die("can't open display", 10);
-
-    int monitors = get_monitor_count(disp);
-
-    ssize_t offsets_x[monitors], offsets_y[monitors];
-    get_monitor_offsets(disp, monitors, offsets_x, offsets_y, 80, 80);
-
-    XCloseDisplay(disp);
-}
-*/
 
 // vim: set colorcolumn=80 :
