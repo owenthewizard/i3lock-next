@@ -78,44 +78,10 @@ void get_monitor_offsets(Display *d, int monitors,
     XRRFreeScreenResources(screens);
 }
 
-void blur(MagickWand *wand, const char *radius, const char *sigma,
-          const char *scale, const char *filter, FilterType resize_filter)
+void blur(MagickWand *wand, const char *radius,
+          const char *sigma, const char *scale)
 {
-    //establish filter
-    D_PRINTF("Filter: %s\n", filter);
-    if (!filter)
-        D_PRINTF("%s\n", "Using default filter");
-    resize_filter = DEFAULT_FILTER;
-    if (filter)
-    {
-        if (strcasecmp(filter, "Jinc") == 0)
-            resize_filter = JincFilter;
-        else if (strcasecmp(filter, "Blackman") == 0)
-            resize_filter = BlackmanFilter;
-        else if (strcasecmp(filter, "Box") == 0)
-            resize_filter = BoxFilter;
-        else if (strcasecmp(filter, "Catrom") == 0)
-            resize_filter = CatromFilter;
-        else if (strcasecmp(filter, "Hanning") == 0)
-            resize_filter = HanningFilter;
-        else if (strcasecmp(filter, "Hermite") == 0)
-            resize_filter = HermiteFilter;
-        else if (strcasecmp(filter, "Lanczos") == 0)
-            resize_filter = LanczosFilter;
-        else if (strcasecmp(filter, "Mitchell") == 0)
-            resize_filter = MitchellFilter;
-        else if (strcasecmp(filter, "Sinc") == 0)
-            resize_filter = SincFilter;
-        else if (strcasecmp(filter, "Triangle") == 0)
-            resize_filter = TriangleFilter;
-        else
-        {
-            fprintf(stderr, "%s\n", "error: invalid filter");
-            status = 30;
-        }
-    }
-
-    //establish other values
+    //establish values
     D_PRINTF("Blur radius: %s\n", radius);
     if (!radius)
         D_PRINTF("Using default radius: %f\n", DEFAULT_RADIUS);
@@ -138,11 +104,11 @@ void blur(MagickWand *wand, const char *radius, const char *sigma,
     D_PRINTF("Scaled height: %zu\n", height_small);
 
     //scale down
-    MagickResizeImage(wand, width_small, height_small, resize_filter);
+    MagickResizeImage(wand, width_small, height_small, LanczosFilter);
     //blur
     MagickGaussianBlurImage(wand, blur_radius, blur_sigma);
     //scale up
-    MagickResizeImage(wand, width_large, height_large, resize_filter);
+    MagickResizeImage(wand, width_large, height_large, MitchellFilter);
 }
 
 int main(int argc, char **argv)
@@ -184,17 +150,13 @@ int main(int argc, char **argv)
     }
 
     //do it
-    FilterType filter;
-
     switch(distort)
     {
         case BLUR:
             D_PRINTF("%s\n", "Applying blur");
             blur(wand, argp->radius_arg,
                  argp->sigma_arg,
-                 argp->scale_factor_arg,
-                 argp->filter_arg,
-                 filter);
+                 argp->scale_factor_arg);
             break;
         case PIXELATE:
             D_PRINTF("%s\n", "Applying pixelation");

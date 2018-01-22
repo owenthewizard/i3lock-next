@@ -26,13 +26,9 @@ Arguments after -- are ignored by i3lock-next and passed to i3lock.
                         fraction, e.x. a value of 5 is a scale ratio of
                         0.2. This version was compiled with DEFAULT_SCALE
                         as default.
-  -f, --filter=FILTER   Filter to use during resize. Can be one of:
-                        Bessel, Blackman, Box, Catrom, Hanning, Hermite,
-                        Lanczos, Mitchell, Sinc, or Triangle. This version
-                        was compiled with DEFAULT_FILTER as default.
   -t, --threshold=THRESH
                         Threshold to discern between light and dark
-                        backgrounds. If the average image value is greater
+                        backgrounds. If the average image lightness is greater
                         than this value, the dark lock image is used.
                         Otherwise, the light lock image is used. This
                         version was compiled with DEFAULT_THRESH as

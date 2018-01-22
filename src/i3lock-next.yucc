@@ -41,7 +41,6 @@ struct yuck_s {
 	char *sigma_arg;
 	char *gamma_arg;
 	char *scale_factor_arg;
-	char *filter_arg;
 	char *threshold_arg;
 	char *lock_light_arg;
 	char *lock_dark_arg;
@@ -237,8 +236,6 @@ static int yuck_parse(yuck_t tgt[static 1U], int argc, char *argv[])
 				tgt->gamma_arg = arg ?: argv[++i];
 			} else if (yuck_streqp(op, "scale-factor")) {
 				tgt->scale_factor_arg = arg ?: argv[++i];
-			} else if (yuck_streqp(op, "filter")) {
-				tgt->filter_arg = arg ?: argv[++i];
 			} else if (yuck_streqp(op, "threshold")) {
 				tgt->threshold_arg = arg ?: argv[++i];
 			} else if (yuck_streqp(op, "lock-light")) {
@@ -343,11 +340,6 @@ static int yuck_parse(yuck_t tgt[static 1U], int argc, char *argv[])
 					? (op += strlen(arg), arg)
 					: argv[++i];
 				break;
-			case 'f':
-				tgt->filter_arg = *arg
-					? (op += strlen(arg), arg)
-					: argv[++i];
-				break;
 			case 't':
 				tgt->threshold_arg = *arg
 					? (op += strlen(arg), arg)
@@ -409,7 +401,6 @@ static void yuck_free(yuck_t tgt[static 1U])
 	default:
 		break;
 	case I3LOCK_NEXT_CMD_NONE:
-;
 ;
 ;
 ;
@@ -484,13 +475,9 @@ static void yuck_auto_help(const yuck_t src[static 1U])
                         fraction, e.x. a value of 5 is a scale ratio of\n\
                         0.2. This version was compiled with DEFAULT_SCALE\n\
                         as default.\n\
-  -f, --filter=FILTER   Filter to use during resize. Can be one of:\n\
-                        Bessel, Blackman, Box, Catrom, Hanning, Hermite,\n\
-                        Lanczos, Mitchell, Sinc, or Triangle. This version\n\
-                        was compiled with DEFAULT_FILTER as default.\n\
   -t, --threshold=THRESH\n\
                         Threshold to discern between light and dark\n\
-                        backgrounds. If the average image value is greater\n\
+                        backgrounds. If the average image lightness is greater\n\
                         than this value, the dark lock image is used.\n\
                         Otherwise, the light lock image is used. This\n\
                         version was compiled with DEFAULT_THRESH as\n\

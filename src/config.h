@@ -39,8 +39,10 @@
 
 /* DEFAULT_THRESH
  * Threshold between light and dark backgrounds
- * If the average image value is greater than this, the dark lock image is used
- * If the average image value is less than this, the light lock image is used
+ * If the average image lightness is greater than this, the dark lock image is
+ * used
+ * If the average image lightness is less than this, the light lock image is
+ * used
  * Default 50
  *
  */
@@ -54,11 +56,16 @@
  */
 #define DEFAULT_METHOD BLUR
 
-/* DEFAULT_FILTER
- * Filter to use during image resize
- * Must be Bessel, Blackman, Box, Catrom, CubicGaussian, Hanning, Hermite,
- * Lanczos, Mitchell, PointQuadratic, Sinc, or Triangle
- * Default Lanczos
+/* DEFAULT_LOCK_LIGHT
+ * Path to lock image for dark backgrounds
+ * Default PREFIX/share/i3lock-next/lock-light.png
  *
  */
-#define DEFAULT_FILTER LanczosFilter
+#define DEFAULT_LOCK_LIGHT PREFIX"/share/i3lock-next/lock-light.png"
+
+/* DEFAULT_LOCK_DARK
+ * Path to lock image for light backgrounds
+ * Default PREFIX/share/i3lock-next/lock-dark.png
+ *
+ */
+#define DEFAULT_LOCK_DARK PREFIX"/share/i3lock-next/lock-dark.png"
