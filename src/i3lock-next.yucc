@@ -458,14 +458,15 @@ static void yuck_auto_help(const yuck_t src[static 1U])
                         was compiled with DEFAULT_METHOD as default.\n\
   -r, --radius=RADIUS   Use RADIUS as the gaussian blur radius, when using\n\
                         the blur METHOD. Has no effect with other METHODs.\n\
-                        This version was compiled with DEFAULT_RADIUS as\n\
-                        default.\n\
+                        Higher values take longer. This version was compiled\n\
+                        with DEFAULT_RADIUS as default.\n\
   -s, --sigma=SIGMA     Use SIGMA as the gaussian blur sigma, when using\n\
                         the blur method. Has no effect with other METHODs.\n\
-                        This version was compiled with DEFAULT_SIGMA as\n\
-                        default.\n\
+                        Higher values take longer. This version was compiled\n\
+                        with DEFAULT_SIGMA as default.\n\
   -g, --gamma=AMOUNT    Adjust the gamm by AMOUNT. Values less than 1.0\n\
-                        darken, while greater than 1.0 brighten. This\n\
+                        darken, while greater than 1.0 brighten. A value\n\
+                        of 1.0 effectively disables this. This\n\
                         version was compiled with DEFAULT_GAMMA as\n\
                         default.\n\
   -p, --scale-factor=FACTOR\n\
@@ -473,8 +474,9 @@ static void yuck_auto_help(const yuck_t src[static 1U])
                         or scale factor to apply before blurring when\n\
                         using blur METHOD. Dividies 1 to create a\n\
                         fraction, e.x. a value of 5 is a scale ratio of\n\
-                        0.2. This version was compiled with DEFAULT_SCALE\n\
-                        as default.\n\
+                        0.2. A value of 1.0 effectively disables this.\n\
+                        Higher values are faster. This version was compiled\n\
+                        with DEFAULT_SCALE as default.\n\
   -t, --threshold=THRESH\n\
                         Threshold to discern between light and dark\n\
                         backgrounds. If the average image lightness is greater\n\
