@@ -44,6 +44,63 @@ void die(const char *message, const int error)
     exit(error);
 }
 
+signed int get_args_to_pass(const int argc, char *argv[], signed int *eop)
+{
+    signed int value = 0;
+    bool flag = false;
+    for (signed int i = 0; i < argc; i++)
+    {
+        if (strcmp(argv[i], "--") == 0 && !flag)
+        {
+            flag = true;
+            *eop = i;
+            continue;
+        }
+        if (flag)
+            value++;
+    }
+    if (!*eop)
+        *eop = -1;
+    return value;
+}
+
+signed int get_args_bytes(const int argc, char *argv[],
+                          const signed int eop, const signed int i3lock_args)
+{
+    signed int value = 0;
+    if (i3lock_args > 0 && eop > 0)
+    {
+        for (signed int i = eop + 1; i < argc; i++)
+            value += strlen(argv[i]) * sizeof(char); //arguments
+        value += sizeof(char) * (i3lock_args - 1);   //spaces between arguments
+        value += sizeof(char);                       //space (after i3lock)
+    }
+    value += sizeof(char) * 7; //i3lock + null
+    return value;
+}
+
+void construct_i3lock_args(const int argc, char *argv[], const int eop,
+                           const int i3lock_args_n, char *i3lock_args)
+{
+    if (i3lock_args)
+    {
+        strcpy(i3lock_args, "i3lock");
+        if (i3lock_args_n > 0 && eop > 0)
+        {
+            strcat(i3lock_args, " ");
+            for (signed int i = eop + 1, spaces = 0; i < argc; i++)
+            {
+                strcat(i3lock_args, argv[i]);
+                if (spaces < i3lock_args_n - 1)
+                {
+                    strcat(i3lock_args, " ");
+                    spaces++;
+                }
+            }
+        }
+    }
+}
+
 /*
 void get_distort(char *distort, Method *m)
 {
@@ -121,6 +178,15 @@ int main(const int argc, char *argv[])
     yuck_t argp[1];
     yuck_parse(argp, argc, argv);
 
+    /*
+    printf("%s", "args:");
+    for (signed int i = 0; i < argc; i++)
+        printf(" %s", argv[i]);
+    printf("\n");
+    */
+
+    //printf("argc: %d, argp->nargs: %zu\n", argc, argp->nargs);
+
     //init wand
     MagickWandGenesis();
     MagickWand *wand = NewMagickWand();
@@ -197,7 +263,7 @@ int main(const int argc, char *argv[])
             wand = DestroyMagickWand(wand);
             MagickWandTerminus();
             yuck_free(argp);
-            die("malloc failed", 20);
+            die("malloc() failed", 20);
         }
     }
     else
@@ -211,7 +277,7 @@ int main(const int argc, char *argv[])
             wand = DestroyMagickWand(wand);
             MagickWandTerminus();
             yuck_free(argp);
-            die("malloc failed", 20);
+            die("malloc() failed", 20);
         }
     }
 
@@ -226,7 +292,7 @@ int main(const int argc, char *argv[])
             wand = DestroyMagickWand(wand);
             MagickWandTerminus();
             yuck_free(argp);
-            die("malloc failed", 20);
+            die("malloc() failed", 20);
         }
     }
     else
@@ -240,7 +306,7 @@ int main(const int argc, char *argv[])
             wand = DestroyMagickWand(wand);
             MagickWandTerminus();
             yuck_free(argp);
-            die("malloc failed", 20);
+            die("malloc() failed", 20);
         }
     }
 
@@ -254,6 +320,8 @@ int main(const int argc, char *argv[])
 
     double threshold = (argp->threshold_arg)?
         strtod(argp->threshold_arg, NULL) : DEFAULT_THRESH;
+
+    yuck_free(argp);
 
     size_t lock_w = MagickGetImageWidth(wand_lock_l);
     size_t lock_h = MagickGetImageHeight(wand_lock_l);
@@ -303,24 +371,51 @@ int main(const int argc, char *argv[])
     free(lock_image_l);
     free(lock_image_d);
 
-    //call i3lock
-    //TODO
-
     //write out result
     char file_name[] = P_tmpdir"/i3lock-next.XXXXXX.png";
     D_PRINTF("Opening %s for writing\n", file_name);
     FILE *output = fdopen(mkstemps(file_name, 4), "w");
-    D_PRINTF("Writing output to: %s\n", file_name);
+    D_PRINTF("Writing output to %s\n", file_name);
     MagickWriteImageFile(wand, output);
     D_PRINTF("Closing %s\n", file_name);
     fclose(output);
-    puts(file_name);
 
-    //cleanup
-    D_PRINTF("%s\n", "Cleaning up");
     wand = DestroyMagickWand(wand);
     MagickWandTerminus();
-    yuck_free(argp);
+
+    //construct args for i3lock
+    signed int end_of_parameter;
+    signed int args_after = get_args_to_pass(argc, argv, &end_of_parameter);
+    D_PRINTF("Detected %d arguments for i3lock\n", args_after);
+    if (end_of_parameter > 0)
+        D_PRINTF("Detected '--' at position %d\n", end_of_parameter);
+
+    char *i3lock_args = malloc(get_args_bytes(argc, argv,
+                               end_of_parameter, args_after)
+                               + strlen(file_name) * sizeof(char)
+                               + sizeof(char) * 4); //" -i "
+    construct_i3lock_args(argc, argv, end_of_parameter,
+                          args_after, i3lock_args);
+    int i3lock_status;
+    if (i3lock_args)
+    {
+        D_PRINTF("%s\n", "Adding image argument to i3lock");
+        strcat(i3lock_args, " -i ");
+        strcat(i3lock_args, file_name);
+        D_PRINTF("calling i3lock like so: \"%s\"\n", i3lock_args);
+        //call i3lock
+        //yep, system() isn't secure
+        i3lock_status = system(i3lock_args);
+        D_PRINTF("deleting %s\n", file_name);
+        unlink(file_name);
+        D_PRINTF("i3lock: exit %d\n", i3lock_status);
+        free(i3lock_args);
+    }
+    else
+    {
+        D_PRINTF("%s\n", "error: malloc() failed");
+        die("malloc() failed", 20);
+    }
 }
 
 // vim: set colorcolumn=80 :
