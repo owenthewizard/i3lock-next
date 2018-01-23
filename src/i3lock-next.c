@@ -38,6 +38,8 @@
     #define D_PRINTF(fmt, ...) do{ } while (0)
 #endif
 
+typedef enum {BLUR, PIXELATE, NONE} Method;
+
 void die(const char *message, const int error)
 {
     fprintf(stderr, "i3lock-next: error: %s\n", message);
@@ -101,12 +103,25 @@ void construct_i3lock_args(const int argc, char *argv[], const int eop,
     }
 }
 
-/*
-void get_distort(char *distort, Method *m)
+void get_distort(const char *distort, Method *m)
 {
-
+    if (distort)
+    {
+        if (strcasecmp(distort, "blur") == 0)
+            *m = BLUR;
+        else if (strcasecmp(distort, "pixelate") == 0)
+            *m = PIXELATE;
+        else if (strcasecmp(distort, "none") == 0)
+            *m = NONE;
+        else
+            die("METHOD must be any-of (blur, pixelate, none)", 10);
+    }
+    else
+    {
+        D_PRINTF("%s\n", "Using default distortion");
+        *m = DEFAULT_METHOD;
+    }
 }
-*/
 
 int get_monitor_count(Display *d)
 {
@@ -178,15 +193,6 @@ int main(const int argc, char *argv[])
     yuck_t argp[1];
     yuck_parse(argp, argc, argv);
 
-    /*
-    printf("%s", "args:");
-    for (signed int i = 0; i < argc; i++)
-        printf(" %s", argv[i]);
-    printf("\n");
-    */
-
-    //printf("argc: %d, argp->nargs: %zu\n", argc, argp->nargs);
-
     //init wand
     MagickWandGenesis();
     MagickWand *wand = NewMagickWand();
@@ -197,29 +203,8 @@ int main(const int argc, char *argv[])
 
     //find out what we want to do
     D_PRINTF("Distort set to: %s\n", argp->method_arg);
-    if (!argp->method_arg)
-        D_PRINTF("%s\n", "Using default distortion");
-    typedef enum {BLUR, PIXELATE, NONE} Method;
     Method distort;
-    //get_distort(argp->method_arg &distort);
-    if (argp->method_arg)
-    {
-        if (strcasecmp(argp->method_arg, "blur") == 0)
-            distort = BLUR;
-        else if (strcasecmp(argp->method_arg, "pixelate") == 0)
-            distort = PIXELATE;
-        else if (strcasecmp(argp->method_arg, "none") == 0)
-            distort = NONE;
-        else
-        {
-            wand = DestroyMagickWand(wand);
-            MagickWandTerminus();
-            yuck_free(argp);
-            die("METHOD must be any-of (blur, pixelate, none)", 10);
-        }
-    }
-    else
-        distort = DEFAULT_METHOD;
+    get_distort(argp->method_arg, &distort);
 
     //do it
     switch(distort)
@@ -237,6 +222,7 @@ int main(const int argc, char *argv[])
             break;
 
         case NONE:
+            D_PRINTF("%s\n", "Skipping distortion");
             break;
     }
 
@@ -255,7 +241,7 @@ int main(const int argc, char *argv[])
     if (argp->lock_light_arg)
     {
         lock_image_l = malloc(sizeof(char) * strlen(argp->lock_light_arg)
-                       + sizeof(char));
+                              + sizeof(char));
         if (lock_image_l)
             strcpy(lock_image_l, argp->lock_light_arg);
         else
@@ -269,7 +255,7 @@ int main(const int argc, char *argv[])
     else
     {
         lock_image_l = malloc(sizeof(char) * strlen(DEFAULT_LOCK_LIGHT)
-                       + sizeof(char));
+                              + sizeof(char));
         if (lock_image_l)
             strcpy(lock_image_l, DEFAULT_LOCK_LIGHT);
         else
@@ -284,7 +270,7 @@ int main(const int argc, char *argv[])
     if (argp->lock_dark_arg)
     {
         lock_image_d = malloc(sizeof(char) * strlen(argp->lock_dark_arg)
-                       + sizeof(char));
+                              + sizeof(char));
         if (lock_image_d)
             strcpy(lock_image_d, argp->lock_dark_arg);
         else
@@ -298,7 +284,7 @@ int main(const int argc, char *argv[])
     else
     {
         lock_image_d = malloc(sizeof(char) * strlen(DEFAULT_LOCK_DARK)
-                       + sizeof(char));
+                              + sizeof(char));
         if (lock_image_d)
             strcpy(lock_image_d, DEFAULT_LOCK_DARK);
         else
@@ -356,11 +342,11 @@ int main(const int argc, char *argv[])
         ClearPixelWand(center);
 
         if (l * 100 >= threshold)
-            MagickCompositeImage(wand, wand_lock_d, OverCompositeOp, MagickFalse,
-                                 offsets_x[i], offsets_y[i]);
+            MagickCompositeImage(wand, wand_lock_d, OverCompositeOp,
+                                 MagickFalse, offsets_x[i], offsets_y[i]);
         else
-            MagickCompositeImage(wand, wand_lock_l, OverCompositeOp, MagickFalse,
-                                 offsets_x[i], offsets_y[i]);
+            MagickCompositeImage(wand, wand_lock_l, OverCompositeOp,
+                                 MagickFalse, offsets_x[i], offsets_y[i]);
     }
     if (wand_cropped != NULL)
         wand_cropped = DestroyMagickWand(wand_cropped);
@@ -394,9 +380,10 @@ int main(const int argc, char *argv[])
                                end_of_parameter, args_after)
                                + strlen(file_name) * sizeof(char)
                                + sizeof(char) * 4); //" -i "
+
     construct_i3lock_args(argc, argv, end_of_parameter,
                           args_after, i3lock_args);
-    int i3lock_status;
+    //int i3lock_status;
     if (i3lock_args)
     {
         D_PRINTF("%s\n", "Adding image argument to i3lock");
@@ -405,7 +392,7 @@ int main(const int argc, char *argv[])
         D_PRINTF("calling i3lock like so: \"%s\"\n", i3lock_args);
         //call i3lock
         //yep, system() isn't secure
-        i3lock_status = system(i3lock_args);
+        //i3lock_status = system(i3lock_args);
         D_PRINTF("deleting %s\n", file_name);
         unlink(file_name);
         D_PRINTF("i3lock: exit %d\n", i3lock_status);
