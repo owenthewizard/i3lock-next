@@ -9,6 +9,7 @@
 /* Standard */
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 /* X11 */
 #include <X11/Xlib.h>
@@ -83,10 +84,21 @@ static const char * imlib_error_as_str(Imlib_Load_Error e)
     return "undefined error";
 }
 
+bool isCentreMonitor(int i, int N)
+{
+    if ((N == 1) || (i == N/2))
+        return true;
+    else
+        return false;
+}
+
 int main(int argc, const char **argv)
 {
-    // NOTE: argv[1] is filename, argv[2] is font path, argv[3] is prompt
-    //       (prompt is optional and should be set in the script)
+    // NOTE: argv[1] is filename
+    //       argv[2] is font path
+    //       argv[3] is path for dark lock image
+    //       argv[4] is path for light lock image
+    //       argv[5] is prompt (prompt is optional and should be set in the script)
 
     // error messages
     const char i3lockerr[]      =  "i3lock-next-helper: error:";
@@ -98,14 +110,14 @@ int main(int argc, const char **argv)
     const char saveimgerr[]     =  "can't save image";
 
     // only take two required arguments
-    if (argc < 3 || argc > 4)
+    if (argc < 5 || argc > 6)
     {
         fprintf(stderr, "%s %s\n", i3lockerr, wrongargs);
         return 1;
     }
 
     // set main prompt (default: none)
-    const char *prompt = (argc == 4)? argv[3] : "";
+    const char *prompt = (argc == 6)? argv[5] : "";
     D_PRINTF("Prompt: %s\n", prompt);
 
     // get current display or default to display :0
@@ -280,6 +292,7 @@ int main(int argc, const char **argv)
     imlib_context_set_image(s);
 
     // draw the lock and text on monitor(s)
+    // Note: the color that is printed is based on the center monitor in a multi-monitor setup
     Imlib_Load_Error error = IMLIB_LOAD_ERROR_NONE;
     for (int i = 0; i < n; i++)
     {
@@ -291,17 +304,19 @@ int main(int argc, const char **argv)
         // determine which lock image to load based on monitor colour
         if (values[i] * 100 >= THRESHOLD)
         {
-            D_PRINTPERM(PREFIX"/share/i3lock-next/lock-dark.png");
-            lock = imlib_load_image_with_error_return(PREFIX"/share/i3lock-next/lock-dark.png", &error);
+            D_PRINTPERM(argv[3]);
+            lock = imlib_load_image_with_error_return(argv[3], &error);
             imlib_context_set_color(0, 0, 0, 255);
-            puts("000000FF");
+            if (isCentreMonitor(i,n))
+                puts("000000FF");
         }
         else
         {
-            D_PRINTPERM(PREFIX"/share/i3lock-next/lock-light.png");
-            lock = imlib_load_image_with_error_return(PREFIX"/share/i3lock-next/lock-light.png", &error);
+            D_PRINTPERM(argv[4]);
+            lock = imlib_load_image_with_error_return(argv[4], &error);
             imlib_context_set_color(255, 255, 255, 255);
-            puts("FFFFFFFF");
+            if (isCentreMonitor(i,n))
+                puts("FFFFFFFF");
         }
 
         if (!lock)
@@ -323,13 +338,20 @@ int main(int argc, const char **argv)
         // draw prompt string just below the centre of the monitor
         imlib_text_draw(promptx, prompty, prompt);
 
+        // get width & height of lock image
+        imlib_context_set_image(lock);
+        int lock_width = imlib_image_get_width();
+        int lock_height = imlib_image_get_height();
+        // make sure to set context back to s
+        imlib_context_set_image(s);
+
         // set variables for lock image location on monitor
-        int lockx = widths[i] / 2 + xcoords[i] - LOCK_SIZE/2;
-        int locky = heights[i] / 2 + ycoords[i] - LOCK_SIZE/2;
+        int lockx = widths[i] / 2 + xcoords[i] - lock_width/2;
+        int locky = heights[i] / 2 + ycoords[i] - lock_height/2;
         D_PRINTF("Monitor %d: lock (x,y): (%d,%d)\n", i, lockx, locky);
 
         // draw lock image at the center of the monitor
-        imlib_blend_image_onto_image(lock, 0, 0, 0, LOCK_SIZE, LOCK_SIZE, lockx, locky, LOCK_SIZE, LOCK_SIZE);
+        imlib_blend_image_onto_image(lock, 0, 0, 0, lock_width, lock_height, lockx, locky, lock_width, lock_height);
     }
 
     // save the image and cleanup
