@@ -1,0 +1,41 @@
+Usage: i3lock-next
+
+Generate a fancy screenshot and call i3lock.
+
+Arguments after -- are ignored by i3lock-next and passed to i3lock.
+
+  -m, --method=METHOD       Distort the screenshot using METHOD. METHOD can
+                            be one of: blur, pixelate, or none. This version
+                            was compiled with DEFAULT_METHOD as default.
+  -r, --strength=STRNGTH    Use RADIUS as the gaussian blur radius, when using
+                            the blur METHOD. Has no effect with other METHODs.
+                            Higher values take longer. This version was compiled
+                            with DEFAULT_RADIUS as default.
+  -i, --iter=ITERATIONS     Blur the image ITERATIONS times, when using the blur
+    						METHOD. Has no effect with other METHODS. Higher values
+    						take longer. This version was compiled with DEFAULT_ITER
+    						as default.
+  -g, --gamma=AMOUNT        Adjust the gamm by AMOUNT. Values less than 1.0
+                            darken, while greater than 1.0 brighten. A value
+                            of 1.0 effectively disables this. This
+                            version was compiled with DEFAULT_GAMMA as
+                            default.
+  -p, --scale-factor=FACTOR
+                            Scale factor to apply when using pixelate METHOD,
+                            or scale factor to apply before blurring when
+                            using blur METHOD. Dividies 1 to create a
+                            fraction, e.x. a value of 5 is a scale ratio of
+                            0.2. A value of 1.0 effectively disables this.
+                            Higher values are faster. This version was compiled
+                            with DEFAULT_SCALE as default.
+  -t, --threshold=THRESH
+                            Threshold to discern between light and dark
+                            backgrounds. If the average image lightness is greater
+                            than this value, the dark lock image is used.
+                            Otherwise, the light lock image is used. This
+                            version was compiled with DEFAULT_THRESH as
+                            default.
+  -l, --lock-light=FILE     Use FILE as the light lock icon. Default is
+                            PREFIX/share/i3lock-next/lock-light.png.
+  -d, --lock-dark=FILE      Use FILE as the dark lock icon. Default is
+                            PREFIX/share/i3lock-next/lock-dark.png.

@@ -1,0 +1,542 @@
+/* -*- c -*- */
+#if !defined INCLUDED_yuck_h_
+#define INCLUDED_yuck_h_
+
+#include <stddef.h>
+
+#define YUCK_OPTARG_NONE	((void*)0x1U)
+
+enum yuck_cmds_e {
+	/* value used when no command was specified */
+	I3LOCK_NEXT_CMD_NONE = 0U,
+
+	/* actual commands */
+	
+	/* convenience identifiers */
+	YUCK_NOCMD = I3LOCK_NEXT_CMD_NONE,
+	YUCK_NCMDS = I3LOCK_NEXT_CMD_NONE
+};
+
+
+
+typedef struct yuck_s yuck_t;
+
+
+
+/* generic struct */
+struct yuck_s {
+	enum yuck_cmds_e cmd;
+
+	/* left-over arguments,
+	 * the command string is never a part of this */
+	size_t nargs;
+	char **args;
+
+	/* slots common to all commands */
+
+	/* help is handled automatically */
+	/* version is handled automatically */
+	char *method_arg;
+	char *strength_arg;
+	char *iter_arg;
+	char *gamma_arg;
+	char *scale_factor_arg;
+	char *threshold_arg;
+	char *lock_light_arg;
+	char *lock_dark_arg;
+};
+
+
+static __attribute__((nonnull(1))) int
+yuck_parse(yuck_t*, int argc, char *argv[]);
+static __attribute__((nonnull(1))) void yuck_free(yuck_t*);
+
+static __attribute__((nonnull(1))) void yuck_auto_help(const yuck_t*);
+static __attribute__((nonnull(1))) void yuck_auto_usage(const yuck_t*);
+static __attribute__((nonnull(1))) void yuck_auto_version(const yuck_t*);
+
+/* some hooks */
+#if defined yuck_post_help
+static __attribute__((nonnull(1))) void yuck_post_help(const yuck_t*);
+#endif	/* yuck_post_help */
+
+#if defined yuck_post_usage
+static __attribute__((nonnull(1))) void yuck_post_usage(const yuck_t*);
+#endif	/* yuck_post_usage */
+
+#if defined yuck_post_version
+static __attribute__((nonnull(1))) void yuck_post_version(const yuck_t*);
+#endif	/* yuck_post_version */
+
+#endif	/* INCLUDED_yuck_h_ */
+/* -*- c -*- */
+#if defined HAVE_CONFIG_H
+# include "config.h"
+#endif	/* HAVE_CONFIG_H */
+#if defined HAVE_VERSION_H
+# include "version.h"
+#endif	/* HAVE_VERSION_H */
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <stdio.h>
+#include <limits.h>
+
+#if defined __INTEL_COMPILER
+# pragma warning (push)
+# pragma warning (disable:177)
+# pragma warning (disable:111)
+# pragma warning (disable:3280)
+#elif defined __GNUC__
+# if __GNUC__ > 4 || __GNUC__ == 4 &&  __GNUC_MINOR__ >= 6
+#  pragma GCC diagnostic push
+# endif	 /* GCC version */
+# pragma GCC diagnostic ignored "-Wunused-label"
+# pragma GCC diagnostic ignored "-Wunused-variable"
+# pragma GCC diagnostic ignored "-Wunused-function"
+# pragma GCC diagnostic ignored "-Wshadow"
+#endif	/* __INTEL_COMPILER */
+
+
+static inline bool
+yuck_streqp(const char *s1, const char *s2)
+{
+	return !strcmp(s1, s2);
+}
+
+/* for multi-args */
+static inline char**
+yuck_append(char **array, size_t n, char *val)
+{
+	if (!(n % 16U)) {
+		/* resize */
+		void *tmp = realloc(array, (n + 16U) * sizeof(*array));
+		if (tmp == NULL) {
+			free(array);
+			return NULL;
+		}
+		/* otherwise make it persistent */
+		array = tmp;
+	}
+	array[n] = val;
+	return array;
+}
+
+static enum yuck_cmds_e yuck_parse_cmd(const char *cmd)
+{
+	if (0) {
+		;
+	} else {
+		/* error here? */
+		fprintf(stderr, "i3lock-next: invalid command `%s'\n\
+Try `--help' for a list of commands.\n", cmd);
+	}
+	return (enum yuck_cmds_e)-1;
+}
+
+
+static int yuck_parse(yuck_t tgt[static 1U], int argc, char *argv[])
+{
+	char *op;
+	int i;
+
+	/* we'll have at most this many args */
+	memset(tgt, 0, sizeof(*tgt));
+	if ((tgt->args = calloc(argc, sizeof(*tgt->args))) == NULL) {
+		return -1;
+	}
+	for (i = 1; i < argc && tgt->nargs < (size_t)-1; i++) {
+		op = argv[i];
+
+		switch (*op) {
+		case '-':
+			/* could be an option */
+			switch (*++op) {
+			default:
+				/* could be glued into one */
+				for (; *op; op++) {
+					goto shortopt; back_from_shortopt:;
+				}
+				break;
+			case '-':
+				if (*++op == '\0') {
+					i++;
+					goto dashdash; back_from_dashdash:;
+					break;
+				}
+				goto longopt; back_from_longopt:;
+				break;
+			case '\0':
+				goto plain_dash;
+			}
+			break;
+		default:
+		plain_dash:
+			goto arg; back_from_arg:;
+			break;
+		}
+	}
+	if (i < argc) {
+		op = argv[i];
+
+		if (*op++ == '-' && *op++ == '-' && !*op) {
+			/* another dashdash, filter out */
+			i++;
+		}
+	}
+	/* has to be here as the max_pargs condition might drive us here */
+	dashdash:
+	{
+		/* dashdash loop, pile everything on tgt->args
+		 * don't check for subcommands either, this is in accordance to
+		 * the git tool which won't accept commands after -- */
+		for (; i < argc; i++) {
+			tgt->args[tgt->nargs++] = argv[i];
+		}
+	}
+	return 0;
+
+	longopt:
+	{
+		/* split into option and arg part */
+		char *arg;
+
+		if ((arg = strchr(op, '=')) != NULL) {
+			/* \nul this one out */
+			*arg++ = '\0';
+		}
+
+		switch (tgt->cmd) {
+		default:
+			goto I3LOCK_NEXT_CMD_NONE_longopt; back_from_I3LOCK_NEXT_CMD_NONE_longopt:;
+			break;
+		}
+		goto back_from_longopt;
+
+
+		I3LOCK_NEXT_CMD_NONE_longopt:
+		{
+			if (0) {
+				;
+			} else if (yuck_streqp(op, "help")) {
+				/* invoke auto action and exit */
+				yuck_auto_help(tgt);
+				goto success;
+			} else if (yuck_streqp(op, "version")) {
+				/* invoke auto action and exit */
+				yuck_auto_version(tgt);
+				goto success;
+			} else if (yuck_streqp(op, "method")) {
+				tgt->method_arg = arg ?: argv[++i];
+			} else if (yuck_streqp(op, "strength")) {
+				tgt->strength_arg = arg ?: argv[++i];
+			} else if (yuck_streqp(op, "iter")) {
+				tgt->iter_arg = arg ?: argv[++i];
+			} else if (yuck_streqp(op, "gamma")) {
+				tgt->gamma_arg = arg ?: argv[++i];
+			} else if (yuck_streqp(op, "scale-factor")) {
+				tgt->scale_factor_arg = arg ?: argv[++i];
+			} else if (yuck_streqp(op, "threshold")) {
+				tgt->threshold_arg = arg ?: argv[++i];
+			} else if (yuck_streqp(op, "lock-light")) {
+				tgt->lock_light_arg = arg ?: argv[++i];
+			} else if (yuck_streqp(op, "lock-dark")) {
+				tgt->lock_dark_arg = arg ?: argv[++i];
+			} else {
+				/* grml */
+				fprintf(stderr, "i3lock-next: unrecognized option `--%s'\n", op);
+				goto failure;
+			xtra_chk:
+				if (arg != NULL) {
+					fprintf(stderr, "i3lock-next: option `--%s' doesn't allow an argument\n", op);
+					goto failure;
+				}
+			}
+			if (i >= argc) {
+				fprintf(stderr, "i3lock-next: option `--%s' requires an argument\n", op);
+				goto failure;
+			}
+			goto back_from_I3LOCK_NEXT_CMD_NONE_longopt;
+		}
+		
+	}
+
+	shortopt:
+	{
+		char *arg = op + 1U;
+
+		switch (tgt->cmd) {
+		default:
+			goto I3LOCK_NEXT_CMD_NONE_shortopt; back_from_I3LOCK_NEXT_CMD_NONE_shortopt:;
+			break;
+		}
+		goto back_from_shortopt;
+
+
+		I3LOCK_NEXT_CMD_NONE_shortopt:
+		{
+			switch (*op) {
+			default:
+				/* again for clarity */
+				switch (*op) {
+				case '0':
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+				case '8':
+				case '9':
+					if (op[-1] == '-') {
+						/* literal treatment of numeral */
+						goto arg;
+					}
+					/* fallthrough */
+				default:
+					break;
+				}
+				;
+				;
+				fprintf(stderr, "i3lock-next: unrecognized option -%c\n", *op);
+				goto failure;
+
+
+
+				
+			case 'h':
+				/* invoke auto action and exit */
+				yuck_auto_help(tgt);
+				goto success;
+				break;
+			case 'V':
+				/* invoke auto action and exit */
+				yuck_auto_version(tgt);
+				goto success;
+				break;
+			case 'm':
+				tgt->method_arg = *arg
+					? (op += strlen(arg), arg)
+					: argv[++i];
+				break;
+			case 'r':
+				tgt->strength_arg = *arg
+					? (op += strlen(arg), arg)
+					: argv[++i];
+				break;
+			case 'i':
+				tgt->iter_arg = *arg
+					? (op += strlen(arg), arg)
+					: argv[++i];
+				break;
+			case 'g':
+				tgt->gamma_arg = *arg
+					? (op += strlen(arg), arg)
+					: argv[++i];
+				break;
+			case 'p':
+				tgt->scale_factor_arg = *arg
+					? (op += strlen(arg), arg)
+					: argv[++i];
+				break;
+			case 't':
+				tgt->threshold_arg = *arg
+					? (op += strlen(arg), arg)
+					: argv[++i];
+				break;
+			case 'l':
+				tgt->lock_light_arg = *arg
+					? (op += strlen(arg), arg)
+					: argv[++i];
+				break;
+			case 'd':
+				tgt->lock_dark_arg = *arg
+					? (op += strlen(arg), arg)
+					: argv[++i];
+				break;
+			}
+			if (i >= argc) {
+				fprintf(stderr, "i3lock-next: option `--%s' requires an argument\n", op);
+				goto failure;
+			}
+			goto back_from_I3LOCK_NEXT_CMD_NONE_shortopt;
+		}
+		
+	}
+
+	arg:
+	{
+		if (tgt->cmd || YUCK_NCMDS == 0U) {
+			tgt->args[tgt->nargs++] = argv[i];
+		} else {
+			/* ah, might be an arg then */
+			if ((tgt->cmd = yuck_parse_cmd(op)) > YUCK_NCMDS) {
+				return -1;
+			}
+		}
+		goto back_from_arg;
+	}
+
+	failure:
+	{
+		exit(EXIT_FAILURE);
+	}
+
+	success:
+	{
+		exit(EXIT_SUCCESS);
+	}
+}
+
+static void yuck_free(yuck_t tgt[static 1U])
+{
+	if (tgt->args != NULL) {
+		/* free despite const qualifier */
+		free(tgt->args);
+	}
+	/* free mulargs */
+	switch (tgt->cmd) {
+		void *ptr;
+	default:
+		break;
+	case I3LOCK_NEXT_CMD_NONE:
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+		break;
+	}
+	return;
+}
+
+static void yuck_auto_usage(const yuck_t src[static 1U])
+{
+	switch (src->cmd) {
+	default:
+	YUCK_NOCMD:
+		puts("Usage: i3lock-next [OPTION]...\n\
+\n\
+Generate a fancy screenshot and call i3lock.\n\
+\n\
+Arguments after -- are ignored by i3lock-next and passed to i3lock.\n\
+");
+		break;
+
+	}
+
+#if defined yuck_post_usage
+	yuck_post_usage(src);
+#endif	/* yuck_post_usage */
+	return;
+}
+
+static void yuck_auto_help(const yuck_t src[static 1U])
+{
+	yuck_auto_usage(src);
+
+
+	/* leave a not about common options */
+	if (src->cmd == YUCK_NOCMD) {
+		;
+	}
+
+	switch (src->cmd) {
+	default:
+	case I3LOCK_NEXT_CMD_NONE:
+		puts("\
+  -h, --help            display this help and exit\n\
+  -V, --version         output version information and exit\n\
+  -m, --method=METHOD   Distort the screenshot using METHOD. METHOD can\n\
+                        be one of: blur, pixelate, or none. This version\n\
+                        was compiled with DEFAULT_METHOD as default.\n\
+  -r, --strength=STRNGTH\n\
+                        Use RADIUS as the gaussian blur radius, when using\n\
+                        the blur METHOD. Has no effect with other METHODs.\n\
+                        Higher values take longer. This version was compiled\n\
+                        with DEFAULT_RADIUS as default.\n\
+  -i, --iter=ITERATIONS  Blur the image ITERATIONS times, when using the blur\n\
+                        THOD. Has no effect with other METHODS. Higher values\n\
+                        ke longer. This version was compiled with DEFAULT_ITER\n\
+                        default.\n\
+  -g, --gamma=AMOUNT    Adjust the gamm by AMOUNT. Values less than 1.0\n\
+                        darken, while greater than 1.0 brighten. A value\n\
+                        of 1.0 effectively disables this. This\n\
+                        version was compiled with DEFAULT_GAMMA as\n\
+                        default.\n\
+  -p, --scale-factor=FACTOR\n\
+                        Scale factor to apply when using pixelate METHOD,\n\
+                        or scale factor to apply before blurring when\n\
+                        using blur METHOD. Dividies 1 to create a\n\
+                        fraction, e.x. a value of 5 is a scale ratio of\n\
+                        0.2. A value of 1.0 effectively disables this.\n\
+                        Higher values are faster. This version was compiled\n\
+                        with DEFAULT_SCALE as default.\n\
+  -t, --threshold=THRESH\n\
+                        Threshold to discern between light and dark\n\
+                        backgrounds. If the average image lightness is greater\n\
+                        than this value, the dark lock image is used.\n\
+                        Otherwise, the light lock image is used. This\n\
+                        version was compiled with DEFAULT_THRESH as\n\
+                        default.\n\
+  -l, --lock-light=FILE  Use FILE as the light lock icon. Default is\n\
+                        PREFIX/share/i3lock-next/lock-light.png.\n\
+  -d, --lock-dark=FILE  Use FILE as the dark lock icon. Default is\n\
+                        PREFIX/share/i3lock-next/lock-dark.png.\n\
+");
+		break;
+
+	}
+
+#if defined yuck_post_help
+	yuck_post_help(src);
+#endif	/* yuck_post_help */
+
+#if defined PACKAGE_BUGREPORT
+	puts("\n\
+Report bugs to " PACKAGE_BUGREPORT);
+#endif	/* PACKAGE_BUGREPORT */
+	return;
+}
+
+static void yuck_auto_version(const yuck_t src[static 1U])
+{
+	switch (src->cmd) {
+	default:
+#if 0
+
+#elif defined package_string
+		puts(package_string);
+#elif defined package_version
+		printf("i3lock-next %s\n", package_version);
+#elif defined PACKAGE_STRING
+		puts(PACKAGE_STRING);
+#elif defined PACKAGE_VERSION
+		puts("i3lock-next " PACKAGE_VERSION);
+#elif defined VERSION
+		puts("i3lock-next " VERSION);
+#else  /* !PACKAGE_VERSION, !VERSION */
+		puts("i3lock-next unknown version");
+#endif	/* PACKAGE_VERSION */
+		break;
+	}
+
+#if defined yuck_post_version
+	yuck_post_version(src);
+#endif	/* yuck_post_version */
+	return;
+}
+
+#if defined __INTEL_COMPILER
+# pragma warning (pop)
+#elif defined __GNUC__
+# if __GNUC__ > 4 || __GNUC__ == 4 &&  __GNUC_MINOR__ >= 6
+#  pragma GCC diagnostic pop
+# endif	 /* GCC version */
+#endif	/* __INTEL_COMPILER */
