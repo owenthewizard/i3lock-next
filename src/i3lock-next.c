@@ -101,6 +101,7 @@ int main(const int argc, char *argv[])
 
     /* Apply gamma adjust */
     imlib_context_set_image(screenshot_main);
+    /*
     float gamma;
     D_PRINTF("Gamma arg: %s\n", argp->gamma_arg);
     if (argp->gamma_arg)
@@ -113,7 +114,14 @@ int main(const int argc, char *argv[])
     }
     else
         gamma = DEFAULT_GAMMA;
-
+    */
+    D_PRINTF("Gamma arg: %s\n", argp->gamma_arg);
+    errno = 0;
+    float gamma;
+    get_arg(argp->gamma_arg, (float) DEFAULT_GAMMA, &gamma);
+    if (errno != 0)
+        fprintf(stderr, "Warning: errno set to: %d, %s\n",
+                errno, strerror(errno));
     D_PRINTF("Gamma set to: %f\n", gamma);
     imlib_context_set_color_modifier(imlib_create_color_modifier());
     imlib_modify_color_modifier_gamma(gamma);
@@ -423,6 +431,25 @@ inline char *get_font_file(FcConfig *config, const char *font_name)
     */
     FcPatternDestroy(pat);
     return font_file;
+}
+
+void get_arg(const char *arg, _Generic default_value, _Generic *value)
+{
+    if (arg)
+        *value = _Generic(default_value,
+                          int8_t:    (int8_t)    strtol(arg, NULL, 10),
+                          int16_t:   (int16_t)   strtol(arg, NULL, 10),
+                          int32_t:   (int32_t)   strtol(arg, NULL, 10),
+                          int64_t:   (int64_t)   strtol(arg, NULL, 10),
+                          uint8_t:   (uint8_t)   strtol(arg, NULL, 10),
+                          uint16_t:  (uint16_t)  strtol(arg, NULL, 10),
+                          uint32_t:  (uint32_t)  strtol(arg, NULL, 10),
+                          uint64_t:  (uint64_t)  strtol(arg, NULL, 10),
+                          float   :  (float)     strtof(arg, NULL),
+                          double  :  (double)    strtod(arg, NULL),
+                          default :  (void*)     NULL);
+    else
+        *value = default_value;
 }
 
 inline void die(const char *message, uint8_t code)

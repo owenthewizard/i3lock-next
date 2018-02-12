@@ -6,7 +6,7 @@ DATAROOTDIR	?= /share
 CC				?= gcc
 ## Manual CFLAGS override this Makefile
 CFLAGS_DEFAULT  := $$(pkg-config --cflags fontconfig imlib2 x11 xrandr)       \
-                   -std=gnu99 -O2 -Wall -Wextra -Wconversion                  \
+                   -std=gnu11 -O2 -Wall -Wextra -Wconversion                  \
                    -Wmissing-prototypes -Wmissing-declarations                \
                    -Wpointer-arith -Wwrite-strings -Wcast-qual                \
                    -Wbad-function-cast -Wformat-security -Wcast-align         \

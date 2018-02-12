@@ -45,4 +45,6 @@ inline void add_fonts_to_imlib_context(FcConfig*);
 
 inline char *get_font_file(FcConfig*, const char*);
 
+void get_arg(const char*, _Generic, _Generic*);
+
 #endif
