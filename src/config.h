@@ -68,3 +68,24 @@
  *
  */
 #define DEFAULT_LOCK_DARK PREFIX"/share/i3lock-next/lock-dark.png"
+
+/* DEFAULT_FONT
+ * Font to use when drawing text
+ * Default "Sans"
+ *
+ */
+#define DEFAULT_FONT "Sans"
+
+/* DEFAULT_FONT_SIZE
+ * Font size to use when drawing text
+ * Default 16
+ *
+ */
+#define DEFAULT_FONT_SIZE 16
+
+/* DEFAULT_PROMPT
+ * Text string to draw
+ * Default ""
+ *
+ */
+#define DEFAULT_PROMPT ""

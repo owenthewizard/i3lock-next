@@ -5,33 +5,34 @@ DATAROOTDIR	?= /share
 
 CC				?= gcc
 ## Manual CFLAGS override this Makefile
-CFLAGS_DEFAULT	:= -std=gnu99 -O2 -Wall -Wextra -Wconversion		  		  \
-				   -Wmissing-prototypes -Wmissing-declarations				  \
-				   -Wpointer-arith -Wwrite-strings -Wcast-qual				  \
-				   -Wbad-function-cast -Wformat-security -Wcast-align		  \
-				   -Wmissing-format-attribute -Winline -Wformat-nonliteral	  \
-				   -Wstrict-prototypes -fomit-frame-pointer					  \
-				   -DPREFIX=\"$(PREFIX)\"
-CFLAGS_DEFAULT	+= $(CFLAGS)
-CFLAGS			:= $(CFLAGS_DEFAULT)
+CFLAGS_DEFAULT  := $$(pkg-config --cflags fontconfig imlib2 x11 xrandr)       \
+                   -std=gnu99 -O2 -Wall -Wextra -Wconversion                  \
+                   -Wmissing-prototypes -Wmissing-declarations                \
+                   -Wpointer-arith -Wwrite-strings -Wcast-qual                \
+                   -Wbad-function-cast -Wformat-security -Wcast-align         \
+                   -Wmissing-format-attribute -Winline -Wformat-nonliteral    \
+                   -Wstrict-prototypes -fomit-frame-pointer                   \
+                   -DPREFIX=\"$(PREFIX)\"
+CFLAGS_DEFAULT  += $(CFLAGS)
+CFLAGS          := $(CFLAGS_DEFAULT)
 
-TARGET	:= i3lock-next
+TARGET  := i3lock-next
 
-SRC_DIR	:= ./src
+SRC_DIR := ./src
 
 BLD_DIR := ./build
 OBJ_DIR := $(BLD_DIR)/obj
 BIN_DIR	:= $(BLD_DIR)/bin
 
-OBJ_LIST	:= i3lock-next.o
-OBJ			= $(patsubst %, $(OBJ_DIR)/%, $(OBJ_LIST))
+OBJ_LIST    := i3lock-next.o
+OBJ          = $(patsubst %, $(OBJ_DIR)/%, $(OBJ_LIST))
 
-LIBS	:= $$(pkg-config --libs imlib2 x11 xrandr)
+LIBS        := $$(pkg-config --libs fontconfig imlib2 x11 xrandr)
 
 ## To keep lines <80 characters
-NOTE	:= 'NOTE: empty directories may exist if you had nothing installed in \
+NOTE    := 'NOTE: empty directories may exist if you had nothing installed in \
 			$(DESTDIR)$(PREFIX)'
-NOTE2	:= 'Make sure to delete i3lock-next/i3lock-next.ini from your user\'s \
+NOTE2   := 'Make sure to delete i3lock-next/i3lock-next.ini from your user\'s \
 			.config directory'
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c

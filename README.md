@@ -2,9 +2,9 @@
 
 This rewrite is a work in progress. See [TODO.md](TODO.md) for details.
 
-- [ ] get font
+- [x] get font
 - [ ] calculate ring size
-- [ ] draw text
+- [x] draw text
 - [x] gamma adjust
 - [ ] call i3lock (and pass args)
 - [x] scale
@@ -13,3 +13,4 @@ This rewrite is a work in progress. See [TODO.md](TODO.md) for details.
 - [x] draw lock icons (proper light/dark)
 - [ ] replace variables in i3lock-next.yucc
 - [ ] thoroughly check with valgrind
+- [ ] text color

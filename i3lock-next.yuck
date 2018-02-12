@@ -7,7 +7,7 @@ Arguments after -- are ignored by i3lock-next and passed to i3lock.
   -m, --method=METHOD       Distort the screenshot using METHOD. METHOD can
                             be one of: blur, pixelate, or none. This version
                             was compiled with DEFAULT_METHOD as default.
-  -r, --strength=STRNGTH    Use RADIUS as the gaussian blur radius, when using
+  -r, --strength=STRENGTH   Use RADIUS as the gaussian blur radius, when using
                             the blur METHOD. Has no effect with other METHODs.
                             Higher values take longer. This version was compiled
                             with DEFAULT_RADIUS as default.
@@ -35,6 +35,13 @@ Arguments after -- are ignored by i3lock-next and passed to i3lock.
                             Otherwise, the light lock image is used. This
                             version was compiled with DEFAULT_THRESH as
                             default.
+  -w, --prompt=STRING       Text to draw on the monitor at INDEX. This version was
+                            compiled with DEFAULT_PROMPT as default.
+  -n, --text-index=INDEX    Monitor number to draw text on, if any. Default 0.
+  -f, --font=FONT           Font to use when drawing text. This verion was compiled
+                            with DEFAULT_FONT as default.
+  -s, --font-size=SIZE      Font size to use when drawing text. This version was
+                            compiled with DEFAULT_FONT_SIZE as default.
   -l, --lock-light=FILE     Use FILE as the light lock icon. Default is
                             PREFIX/share/i3lock-next/lock-light.png.
   -d, --lock-dark=FILE      Use FILE as the dark lock icon. Default is

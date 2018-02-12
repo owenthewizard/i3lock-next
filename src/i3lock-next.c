@@ -77,8 +77,8 @@ int main(const int argc, char *argv[])
         case BLUR:
             get_blur_details(argp->strength_arg, argp->iter_arg,
                     &blur_strength, &blur_iter);
-            D_PRINTF("Applying %"PRIu8" iterations of blur with strength of \
-                     %"PRIu8"\n", blur_iter, blur_strength);
+            D_PRINTF("Applying %"PRIu8" iterations of blur with strength of %"
+                    PRIu8"\n", blur_iter, blur_strength);
             for (int8_t i = 0; i < blur_iter; i++)
                 imlib_image_blur(blur_strength);
             break;
@@ -157,8 +157,7 @@ int main(const int argc, char *argv[])
     /* Draw lock icons */
     int16_t offsets_x[monitors], offsets_y[monitors];
     get_monitor_offsets(disp, root, monitors,
-                        offsets_x, offsets_y,
-                        lock_w, lock_h);
+                        offsets_x, offsets_y);
     XFree(disp);
 
     int8_t thresh;
@@ -170,7 +169,7 @@ int main(const int argc, char *argv[])
 
     Imlib_Image *cropped = NULL;
     float light, dum;
-    for (int8_t i = 0; i < monitors; i++)
+    for (size_t i = 0; i < monitors; i++)
     {
         imlib_context_set_image(screenshot_main);
         cropped =
@@ -179,24 +178,104 @@ int main(const int argc, char *argv[])
                     offsets_y[i] - lock_h / 2,
                     lock_w, lock_h, 1, 1);
         imlib_context_set_image(cropped);
-        imlib_image_query_pixel_hlsa(0, 0, &dum, &light, &dum, &dum);
+        imlib_image_query_pixel_hlsa(0, 0, &dum, &light, &dum, (int*) &dum);
         imlib_free_image();
 
         imlib_context_set_image(screenshot_main);
         if (light * 100 > thresh)
             imlib_blend_image_onto_image(lock_dark, false, 0, 0,
                                          lock_w, lock_h,
-                                         offsets_x[i], offsets_y[i],
+                                         offsets_x[i] - lock_w / 2,
+                                         offsets_y[i] - lock_h / 2,
                                          lock_w, lock_h);
         else
             imlib_blend_image_onto_image(lock_light, false, 0, 0,
                                          lock_w, lock_h,
-                                         offsets_x[i], offsets_y[i],
+                                         offsets_x[i] - lock_w / 2,
+                                         offsets_y[i] - lock_h / 2,
                                          lock_w, lock_h);
     }
+    screenshot_main = imlib_context_get_image();
+
+    /* Load font */
+    D_PRINTF("%s\n", "Loading fontconfig config...");
+    FcConfig *config = FcInitLoadConfigAndFonts();
+    add_fonts_to_imlib_context(config);
+    D_PRINTF("Font arg: %s\n", argp->font_arg);
+    char *font;
+    if (argp->font_arg)
+        font = get_font_file(config, argp->font_arg);
+    else
+        font = get_font_file(config, DEFAULT_FONT);
+    FcConfigDestroy(config);
+
+    if (!font)
+        die("Failed to find an appropriate font", 30);
+
+    D_PRINTF("Font size arg: %s\n", argp->font_size_arg);
+    uint8_t font_size;
+    if (argp->font_size_arg)
+    {
+        errno = 0;
+        font_size = strtol(argp->font_size_arg, NULL, 10);
+        if (errno != 0)
+            fprintf(stderr, "Warning: errno was set to %d, %s\n",
+                    errno, strerror(errno));
+    }
+    else
+        font_size = DEFAULT_FONT_SIZE;
+
+    char *imlib_font_arg = malloc(sizeof(char) * strlen(font) + 4);
+    if (imlib_font_arg)
+        sprintf(imlib_font_arg, "%s/%"PRIu8, font, font_size);
+    else
+        die("malloc() failed!", 40);
+
+    imlib_context_set_font(imlib_load_font(imlib_font_arg));
+    D_PRINTF("Loaded font file: %s with size %"PRIu8"\n", font, font_size);
+    D_PRINTF("%s\n", imlib_font_arg);
+    FREE(imlib_font_arg);
+
+    /* Calculate text offsets */
+    D_PRINTF("Text index arg: %s\n", argp->text_index_arg);
+    uint8_t text_index;
+    if (argp->text_index_arg)
+    {
+        errno = 0;
+        text_index = strtol(argp->text_index_arg, NULL, 10);
+        if (errno != 0)
+            fprintf(stderr, "Warning: errno was set to %d, %s\n",
+                    errno, strerror(errno));
+    }
+    else
+        text_index = 0;
+
+    D_PRINTF("Prompt arg: \"%s\"\n", argp->prompt_arg);
+    int text_offset_w;
+    imlib_context_set_image(imlib_create_image(total_width, total_height));
+    /* prompt set via argument and is not "" */
+    if (argp->prompt_arg && strcmp(argp->prompt_arg, "") != 0)
+        imlib_text_draw_with_return_metrics(0, 0, argp->prompt_arg,
+                                            &text_offset_w, (int*) &dum,
+                                            (int*) &dum, (int*) &dum);
+    /* prompt argument unset and DEFAULT_PROMPT is not "" */
+    else if (strcmp(DEFAULT_PROMPT, "") != 0)
+        imlib_text_draw_with_return_metrics(0, 0, DEFAULT_PROMPT,
+                                            &text_offset_w, (int*) &dum,
+                                            (int*) &dum, (int*) &dum);
+    imlib_free_image_and_decache();
 
     /* Draw text */
-    //TODO
+    imlib_context_set_image(screenshot_main);
+    if (argp->prompt_arg && text_offset_w)
+        imlib_text_draw(offsets_x[text_index] - text_offset_w / 2,
+                        offsets_y[text_index] + lock_h * 3,
+                        argp->prompt_arg);
+    else if (text_offset_w)
+        imlib_text_draw(offsets_x[text_index] - text_offset_w / 2,
+                        offsets_y[text_index] + lock_h * 3,
+                        DEFAULT_PROMPT);
+    imlib_free_font();
 
     /* Write out result */
     char file_name[] = P_tmpdir"/i3lock-next.XXXXXX.png";
@@ -206,11 +285,13 @@ int main(const int argc, char *argv[])
     imlib_save_image_with_error_return(file_name, &imlib_error);
     if (imlib_error != IMLIB_LOAD_ERROR_NONE)
         D_PRINTF("Imlib_Load_Error: %d\n", imlib_error);
+    imlib_free_image();
+    return 0;
 
     /* Call i3lock */
     //TODO: pass arguments
     char *i3lock = malloc(sizeof(char) * 11
-                          + sizeof(char) * strlen(file_name));
+            + sizeof(char) * strlen(file_name));
     strcpy(i3lock, "i3lock -i ");
     strcat(i3lock, file_name);
     system(i3lock);
@@ -261,7 +342,7 @@ inline void get_distort(const char *distort, Method *m)
         else if (strcasecmp(distort, "none") == 0)
             *m = NONE;
         else
-            die("METHOD must be any-of (blur, pixelate, none)", 10);
+            die("METHOD must be any-of (blur, pixelate, none)", 20);
     }
     else
     {
@@ -279,28 +360,69 @@ inline int get_monitor_count(Display *d, const Window w)
 }
 
 void get_monitor_offsets(Display *d, const Window w, const int monitors,
-                         int16_t *offsets_x, int16_t *offsets_y,
-                         const int lock_w, const int lock_h)
+        int16_t *offsets_x, int16_t *offsets_y)
 {
-    XRRScreenResources *screens =                                               
-        XRRGetScreenResources(d, w);                         
-                                                                                
+    XRRScreenResources *screens = XRRGetScreenResources(d, w);                         
+
     XRRCrtcInfo *screen;                                                        
-    for (int8_t i = 0; i < monitors; i++)                                   
+    for (size_t i = 0; i < monitors; i++)                                   
     {                                                                           
         screen = XRRGetCrtcInfo(d, screens, screens->crtcs[i]);                 
-                                                                                
-        D_PRINTF("Monitor %"PRId8": (x,y): (%d,%d)\n",
-                 i, screen->x, screen->y);      
-        D_PRINTF("Monitor %"PRId8": %ux%u\n",
-                 i, screen->width, screen->height);      
-                                                                                
-        *(offsets_x + i) = screen->width / 2 - lock_w / 2 + screen->x;          
-        *(offsets_y + i) = screen->height / 2 - lock_h / 2 + screen->y;         
-                                                                                
+
+        D_PRINTF("Monitor %zu: (x,y): (%d,%d)\n",
+                i, screen->x, screen->y);      
+        D_PRINTF("Monitor %zu: %ux%u\n",
+                i, screen->width, screen->height);      
+
+        *(offsets_x + i) = screen->width / 2 + screen->x;          
+        *(offsets_y + i) = screen->height / 2 + screen->y;         
+
         XRRFreeCrtcInfo(screen);                                                
     }                                                                           
     XRRFreeScreenResources(screens);
+}
+
+inline void add_fonts_to_imlib_context(FcConfig *config)
+{
+    FcStrList *font_dirs = FcConfigGetFontDirs(config);
+    FcChar8 *path;
+    while ((path = FcStrListNext(font_dirs)))
+    {
+        D_PRINTF("Adding font path: %s\n", path);
+        imlib_add_path_to_font_path((const char*) path);
+    }
+    FcStrFree(path);
+    FcStrListDone(font_dirs);
+
+    /*
+    int total_paths;
+    char **paths = imlib_list_font_path(&total_paths);
+    for (int8_t i = 0; i < total_paths; i++)
+        D_PRINTF("Imlib2 font path (%"PRId8"/%d): %s\n",
+                i + 1, total_paths, *(paths+i));
+    imlib_free_font_list(paths, total_paths);
+    */
+}
+
+inline char *get_font_file(FcConfig *config, const char *font_name)
+{
+    D_PRINTF("Searching for closest match to: %s\n", font_name);
+    FcPattern *pat = FcNameParse((const FcChar8*) font_name);
+    FcConfigSubstitute(config, pat, FcMatchPattern);
+    FcDefaultSubstitute(pat);
+    FcResult dum;
+    FcPattern *font = FcFontMatch(config, pat, &dum);
+
+    char *font_file = NULL;
+    if (!font
+        || FcPatternGetString(font, FC_FILE, 0, (FcChar8**) &font_file) != FcResultMatch)
+        fprintf(stderr, "Could not find a font file for %s\n", font_name);
+
+    /* TODO: free this later
+    FcPatternDestroy(font);
+    */
+    FcPatternDestroy(pat);
+    return font_file;
 }
 
 inline void die(const char *message, uint8_t code)

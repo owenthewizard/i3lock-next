@@ -42,6 +42,10 @@ struct yuck_s {
 	char *gamma_arg;
 	char *scale_factor_arg;
 	char *threshold_arg;
+	char *prompt_arg;
+	char *text_index_arg;
+	char *font_arg;
+	char *font_size_arg;
 	char *lock_light_arg;
 	char *lock_dark_arg;
 };
@@ -238,6 +242,14 @@ static int yuck_parse(yuck_t tgt[static 1U], int argc, char *argv[])
 				tgt->scale_factor_arg = arg ?: argv[++i];
 			} else if (yuck_streqp(op, "threshold")) {
 				tgt->threshold_arg = arg ?: argv[++i];
+			} else if (yuck_streqp(op, "prompt")) {
+				tgt->prompt_arg = arg ?: argv[++i];
+			} else if (yuck_streqp(op, "text-index")) {
+				tgt->text_index_arg = arg ?: argv[++i];
+			} else if (yuck_streqp(op, "font")) {
+				tgt->font_arg = arg ?: argv[++i];
+			} else if (yuck_streqp(op, "font-size")) {
+				tgt->font_size_arg = arg ?: argv[++i];
 			} else if (yuck_streqp(op, "lock-light")) {
 				tgt->lock_light_arg = arg ?: argv[++i];
 			} else if (yuck_streqp(op, "lock-dark")) {
@@ -345,6 +357,26 @@ static int yuck_parse(yuck_t tgt[static 1U], int argc, char *argv[])
 					? (op += strlen(arg), arg)
 					: argv[++i];
 				break;
+			case 'w':
+				tgt->prompt_arg = *arg
+					? (op += strlen(arg), arg)
+					: argv[++i];
+				break;
+			case 'n':
+				tgt->text_index_arg = *arg
+					? (op += strlen(arg), arg)
+					: argv[++i];
+				break;
+			case 'f':
+				tgt->font_arg = *arg
+					? (op += strlen(arg), arg)
+					: argv[++i];
+				break;
+			case 's':
+				tgt->font_size_arg = *arg
+					? (op += strlen(arg), arg)
+					: argv[++i];
+				break;
 			case 'l':
 				tgt->lock_light_arg = *arg
 					? (op += strlen(arg), arg)
@@ -411,6 +443,10 @@ static void yuck_free(yuck_t tgt[static 1U])
 ;
 ;
 ;
+;
+;
+;
+;
 		break;
 	}
 	return;
@@ -456,7 +492,7 @@ static void yuck_auto_help(const yuck_t src[static 1U])
   -m, --method=METHOD   Distort the screenshot using METHOD. METHOD can\n\
                         be one of: blur, pixelate, or none. This version\n\
                         was compiled with DEFAULT_METHOD as default.\n\
-  -r, --strength=STRNGTH\n\
+  -r, --strength=STRENGTH\n\
                         Use RADIUS as the gaussian blur radius, when using\n\
                         the blur METHOD. Has no effect with other METHODs.\n\
                         Higher values take longer. This version was compiled\n\
@@ -485,6 +521,14 @@ static void yuck_auto_help(const yuck_t src[static 1U])
                         Otherwise, the light lock image is used. This\n\
                         version was compiled with DEFAULT_THRESH as\n\
                         default.\n\
+  -w, --prompt=STRING   Text to draw on the monitor at INDEX. This version was\n\
+                        compiled with DEFAULT_PROMPT as default.\n\
+  -n, --text-index=INDEX\n\
+                        Monitor number to draw text on, if any. Default 0.\n\
+  -f, --font=FONT       Font to use when drawing text. This verion was compiled\n\
+                        with DEFAULT_FONT as default.\n\
+  -s, --font-size=SIZE  Font size to use when drawing text. This version was\n\
+                        compiled with DEFAULT_FONT_SIZE as default.\n\
   -l, --lock-light=FILE  Use FILE as the light lock icon. Default is\n\
                         PREFIX/share/i3lock-next/lock-light.png.\n\
   -d, --lock-dark=FILE  Use FILE as the dark lock icon. Default is\n\
