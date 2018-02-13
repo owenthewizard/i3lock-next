@@ -14,3 +14,4 @@ This rewrite is a work in progress. See [TODO.md](TODO.md) for details.
 - [ ] replace variables in i3lock-next.yucc
 - [ ] thoroughly check with valgrind
 - [ ] text color
+- [ ] sorting

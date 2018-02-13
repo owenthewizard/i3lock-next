@@ -17,11 +17,13 @@
 #include <string.h>
 
 #ifdef DEBUG
+  #include <assert.h>
   #define D_PRINTF(fmt, ...) fprintf(stderr, "DEBUG: %s: %d: %s(): " fmt, \
                                      __FILE__, __LINE__, __func__,        \
                                      __VA_ARGS__);
 #else
   #define D_PRINTF(fmt, ...) do{ } while(0)
+  #define assert(x) do{ } while(0)
 #endif
 
 #define FREE(ptr) if (ptr) { free(ptr); ptr = NULL; }
@@ -44,5 +46,18 @@ void get_monitor_offsets(Display*, const Window, const int,
 inline void add_fonts_to_imlib_context(FcConfig*);
 
 inline char *get_font_file(FcConfig*, const char*);
+
+inline float get_gamma(const char*);
+
+inline int8_t get_threshold(const char*);
+
+void warn_errno(const char*);
+
+inline void draw_lock_icons(const char*, Imlib_Image*,
+                            const int, Display*, const Window,
+                            const int, const int,
+                            Imlib_Image*,
+                            Imlib_Image*, int16_t*,
+                            int16_t*);
 
 #endif

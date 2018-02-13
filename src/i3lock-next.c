@@ -101,20 +101,11 @@ int main(const int argc, char *argv[])
 
     /* Apply gamma adjust */
     imlib_context_set_image(screenshot_main);
-    float gamma;
-    D_PRINTF("Gamma arg: %s\n", argp->gamma_arg);
-    if (argp->gamma_arg)
-    {
-        errno = 0;
-        gamma = strtof(argp->gamma_arg, NULL);
-        if (errno != 0)
-            D_PRINTF("Function strtof() set errno to: %d (%s)\n",
-                     errno, strerror(errno));
-    }
-    else
-        gamma = DEFAULT_GAMMA;
-
+    float gamma = get_gamma(argp->gamma_arg);
+    warn_errno("gamma");
     D_PRINTF("Gamma set to: %f\n", gamma);
+    assert(gamma >= 0);
+
     imlib_context_set_color_modifier(imlib_create_color_modifier());
     imlib_modify_color_modifier_gamma(gamma);
     imlib_apply_color_modifier();
@@ -156,46 +147,11 @@ int main(const int argc, char *argv[])
 
     /* Draw lock icons */
     int16_t offsets_x[monitors], offsets_y[monitors];
-    get_monitor_offsets(disp, root, monitors,
-                        offsets_x, offsets_y);
+    get_monitor_offsets(disp, root, monitors, offsets_x, offsets_y);
+    draw_lock_icons(argp->threshold_arg, screenshot_main, monitors, disp, root,
+                    lock_w, lock_h, lock_light, lock_dark, offsets_x,
+                    offsets_y);
     XFree(disp);
-
-    int8_t thresh;
-    if (argp->threshold_arg)
-        thresh = strtol(argp->threshold_arg, NULL, 10);
-    else
-        thresh = DEFAULT_THRESHOLD;
-    D_PRINTF("Threshold set to: %"PRId8"\n", thresh);
-
-    Imlib_Image *cropped = NULL;
-    float light, dum;
-    for (size_t i = 0; i < monitors; i++)
-    {
-        imlib_context_set_image(screenshot_main);
-        cropped =
-            imlib_create_cropped_scaled_image(
-                    offsets_x[i] - lock_w / 2,
-                    offsets_y[i] - lock_h / 2,
-                    lock_w, lock_h, 1, 1);
-        imlib_context_set_image(cropped);
-        imlib_image_query_pixel_hlsa(0, 0, &dum, &light, &dum, (int*) &dum);
-        imlib_free_image();
-
-        imlib_context_set_image(screenshot_main);
-        if (light * 100 > thresh)
-            imlib_blend_image_onto_image(lock_dark, false, 0, 0,
-                                         lock_w, lock_h,
-                                         offsets_x[i] - lock_w / 2,
-                                         offsets_y[i] - lock_h / 2,
-                                         lock_w, lock_h);
-        else
-            imlib_blend_image_onto_image(lock_light, false, 0, 0,
-                                         lock_w, lock_h,
-                                         offsets_x[i] - lock_w / 2,
-                                         offsets_y[i] - lock_h / 2,
-                                         lock_w, lock_h);
-    }
-    screenshot_main = imlib_context_get_image();
 
     /* Load font */
     D_PRINTF("%s\n", "Loading fontconfig config...");
@@ -251,18 +207,18 @@ int main(const int argc, char *argv[])
         text_index = 0;
 
     D_PRINTF("Prompt arg: \"%s\"\n", argp->prompt_arg);
-    int text_offset_w;
+    int text_offset_w, dum;
     imlib_context_set_image(imlib_create_image(total_width, total_height));
     /* prompt set via argument and is not "" */
     if (argp->prompt_arg && strcmp(argp->prompt_arg, "") != 0)
         imlib_text_draw_with_return_metrics(0, 0, argp->prompt_arg,
-                                            &text_offset_w, (int*) &dum,
-                                            (int*) &dum, (int*) &dum);
+                                            &text_offset_w, &dum,
+                                            &dum, &dum);
     /* prompt argument unset and DEFAULT_PROMPT is not "" */
     else if (strcmp(DEFAULT_PROMPT, "") != 0)
         imlib_text_draw_with_return_metrics(0, 0, DEFAULT_PROMPT,
-                                            &text_offset_w, (int*) &dum,
-                                            (int*) &dum, (int*) &dum);
+                                            &text_offset_w, &dum,
+                                            &dum, &dum);
     imlib_free_image_and_decache();
 
     /* Draw text */
@@ -286,7 +242,6 @@ int main(const int argc, char *argv[])
     if (imlib_error != IMLIB_LOAD_ERROR_NONE)
         D_PRINTF("Imlib_Load_Error: %d\n", imlib_error);
     imlib_free_image();
-    return 0;
 
     /* Call i3lock */
     //TODO: pass arguments
@@ -302,8 +257,51 @@ int main(const int argc, char *argv[])
     yuck_free(argp);
 }
 
+inline void draw_lock_icons(const char *threshold, Imlib_Image *screenshot,
+                            const int monitors, Display *d, const Window w,
+                            const int lock_w, const int lock_h,
+                            Imlib_Image *lock_light,
+                            Imlib_Image *lock_dark, int16_t *offsets_x,
+                            int16_t *offsets_y)
+{
+    int8_t thresh = get_threshold(threshold);
+    warn_errno("threshold");
+    D_PRINTF("Threshold set to: %"PRId8"\n", thresh);
+
+    Imlib_Image *cropped = NULL;
+    float light, dum;
+    for (size_t i = 0; i < monitors; i++)
+    {
+        imlib_context_set_image(screenshot);
+        cropped =
+            imlib_create_cropped_scaled_image(
+                    *(offsets_x + i) - lock_w / 2,
+                    *(offsets_y + i) - lock_h / 2,
+                    lock_w, lock_h, 1, 1);
+        imlib_context_set_image(cropped);
+        imlib_image_query_pixel_hlsa(0, 0, &dum, &light, &dum, (int*) &dum);
+        imlib_free_image();
+
+        imlib_context_set_image(screenshot);
+        if (light * 100 > thresh)
+            imlib_blend_image_onto_image(lock_dark, false, 0, 0,
+                                         lock_w, lock_h,
+                                         *(offsets_x + i) - lock_w / 2,
+                                         *(offsets_y + i) - lock_h / 2,
+                                         lock_w, lock_h);
+        else
+            imlib_blend_image_onto_image(lock_light, false, 0, 0,
+                                         lock_w, lock_h,
+                                         *(offsets_x + i) - lock_w / 2,
+                                         *(offsets_y + i) - lock_h / 2,
+                                         lock_w, lock_h);
+    }
+    screenshot = imlib_context_get_image();
+}
+
 inline uint8_t get_scale(const char *scale_arg)
 {
+    errno = 0;
     uint8_t scale;
     D_PRINTF("Scale factor arg: %s\n", scale_arg);
     if (scale_arg)
@@ -311,6 +309,20 @@ inline uint8_t get_scale(const char *scale_arg)
     else
         scale = DEFAULT_SCALE;
     return (scale > 0)? scale : 1;
+}
+
+inline int8_t get_threshold(const char *threshold_arg)
+{
+    errno = 0;
+    D_PRINTF("Threshold arg: %s\n", threshold_arg);
+    return (threshold_arg)? strtol(threshold_arg, NULL, 10) : DEFAULT_THRESH;
+}
+
+inline float get_gamma(const char *gamma_arg)
+{
+    errno = 0;
+    D_PRINTF("Gamma arg: %s\n", gamma_arg);
+    return (gamma_arg)? strtof(gamma_arg, NULL) : DEFAULT_GAMMA;
 }
 
 inline void get_blur_details(const char *blur_arg, const char *iter_arg,
@@ -418,11 +430,18 @@ inline char *get_font_file(FcConfig *config, const char *font_name)
         || FcPatternGetString(font, FC_FILE, 0, (FcChar8**) &font_file) != FcResultMatch)
         fprintf(stderr, "Could not find a font file for %s\n", font_name);
 
-    /* TODO: free this later
+    /* FIXME: free this later
     FcPatternDestroy(font);
     */
     FcPatternDestroy(pat);
     return font_file;
+}
+
+void warn_errno(const char *prop)
+{
+    if (errno != 0)
+        fprintf(stderr, "Warning: errno set while parsing %s: %d, %s\n",
+                prop, errno, strerror(errno));
 }
 
 inline void die(const char *message, uint8_t code)

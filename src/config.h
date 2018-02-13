@@ -37,7 +37,7 @@
  */
 #define DEFAULT_STRENGTH 2
 
-/* DEFAULT_THRESHOLD
+/* DEFAULT_THRESH
  * Threshold between light and dark backgrounds
  * If the average image lightness is greater than this, the dark lock image is
  * used
@@ -45,7 +45,7 @@
  * Default 50
  *
  */
-#define DEFAULT_THRESHOLD 50
+#define DEFAULT_THRESH 50
 
 /* DEFAULT_METHOD
  * Method for distortion of image
