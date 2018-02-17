@@ -6,6 +6,7 @@ DATAROOTDIR	?= /share
 CC				?= gcc
 ## Manual CFLAGS override this Makefile
 CFLAGS_DEFAULT  := $$(pkg-config --cflags fontconfig imlib2 x11 xrandr)       \
+                   -Isrc/include                                              \
                    -std=gnu99 -O2 -Wall -Wextra -Wconversion                  \
                    -Wmissing-prototypes -Wmissing-declarations                \
                    -Wpointer-arith -Wwrite-strings -Wcast-qual                \
@@ -24,16 +25,15 @@ BLD_DIR := ./build
 OBJ_DIR := $(BLD_DIR)/obj
 BIN_DIR	:= $(BLD_DIR)/bin
 
-OBJ_LIST    := i3lock-next.o
+OBJ_LIST    := helpers.o main.o processing.o sanitizers.o
 OBJ          = $(patsubst %, $(OBJ_DIR)/%, $(OBJ_LIST))
 
 LIBS        := $$(pkg-config --libs fontconfig imlib2 x11 xrandr)
 
 ## To keep lines <80 characters
-NOTE    := 'NOTE: empty directories may exist if you had nothing installed in \
-			$(DESTDIR)$(PREFIX)'
-NOTE2   := 'Make sure to delete i3lock-next/i3lock-next.ini from your user\'s \
-			.config directory'
+NOTE    := 'NOTE: empty directories may exist if you had nothing installed in '
+			
+NOTE2   := 'Make sure to delete i3lock-next/i3lock-next.ini from your user\'s'
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@echo Compiling $<
@@ -65,8 +65,8 @@ uninstall:
 	@rm $(DESTDIR)$(PREFIX)/bin/$(TARGET)
 	@rm -r $(DESTDIR)$(PREFIX)$(DATAROOTDIR)/$(TARGET)
 	@echo Uninstall complete
-	@echo $(NOTE)
-	@echo $(NOTE2)
+	@echo $(NOTE)$(DESTDIR)$(PREFIX)
+	@echo '$(NOTE2).config directory'
 
 clean:
 	@rm -rf $(OBJ_DIR) $(BIN_DIR)
