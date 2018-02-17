@@ -164,7 +164,7 @@ void set_imlib2_context(Display *d, const Window w, const int screen,
         die("malloc() failed!", 40);
 
     imlib_context_set_font(imlib_load_font(imlib_font_arg));
-    D_PRINTF("Loaded font file: %s woth size %"PRIu8"\n", font, font_size);
+    D_PRINTF("Loaded font file: %s with size %"PRIu8"\n", font, font_size);
     D_PRINTF("%s\n", imlib_font_arg);
     FREE(imlib_font_arg);
     FcPatternDestroy(temp);
