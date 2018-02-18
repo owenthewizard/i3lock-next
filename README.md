@@ -8,16 +8,16 @@ This rewrite is a work in progress. See [TODO.md](TODO.md) for details.
 - [x] gamma adjust
 - [x] call i3lock (and pass args)
 - [x] scale
-- [ ] more media examples (pixelate and blur with various settings
 - [x] blur and pixelate
 - [x] draw lock icons (proper light/dark)
-- [ ] replace variables in i3lock-next.yucc
-- [ ] thoroughly check with valgrind
+- [x] replace variables in i3lock-next.yucc
 - [x] text color
 - [x] sorting
-- [ ] config
 - [x] brightness vs gamma
 - [x] GNU error messages (warn())
+- [x] replace certain instances of strtol() with sscanf()
 - [ ] style guide
-- [ ] replace certain instances of strtol() with sscanf()
+- [ ] thoroughly check with valgrind
+- [ ] config
 - [ ] ring colors
+- [ ] more media examples (pixelate and blur with various settings
