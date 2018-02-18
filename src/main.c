@@ -33,7 +33,6 @@ int main(int argc, char **argv)
         die("Failed to open display", __FILE__, __LINE__, 10);
     Window root = DefaultRootWindow(disp);
     Screen *screen = DefaultScreenOfDisplay(disp);
-    //int screen_n = DefaultScreen(disp);
 
     /* Get some info about the monitor */
     int total_width = screen->width;
@@ -57,9 +56,8 @@ int main(int argc, char **argv)
                        argp->font_size_arg);
 
     D_PRINTF("%s\n", "Taking screenshot");
-
     Imlib_Image *screenshot =
-        imlib_create_scaled_image_from_drawable(false, 0, 0, total_width,
+        imlib_create_scaled_image_from_drawable((Pixmap) 0, 0, 0, total_width,
                                                 total_height,
                                                 total_width / scale,
                                                 total_height / scale,
@@ -88,9 +86,11 @@ int main(int argc, char **argv)
 
     draw_lock_icons(screenshot, lock_d, lock_l, centers_x, centers_y,
                     threshold, monitors, &lock_w, &lock_h);
-    
-    XFree(screen);
-    XFree(disp);
+
+    imlib_context_set_image(lock_d);
+    imlib_free_image();
+    imlib_context_set_image(lock_l);
+    imlib_free_image();
 
     draw_text(screenshot, argp->prompt_arg, argp->text_index_arg, threshold,
               total_width, total_height, centers_x, centers_y);
@@ -99,10 +99,16 @@ int main(int argc, char **argv)
     mkstemps(file_name, 4);
     D_PRINTF("Writing output to %s\n", file_name);
     Imlib_Load_Error imlib_error = IMLIB_LOAD_ERROR_NONE;
+    imlib_context_set_image(screenshot);
     imlib_save_image_with_error_return(file_name, &imlib_error);
     if (imlib_error != IMLIB_LOAD_ERROR_NONE)
         D_PRINTF("Imlib_Load_Error set while saving: %d\n", imlib_error);
+
+    /* Cleanup imlib2 context */
     imlib_free_image();
+    XFree(imlib_context_get_visual());
+    XFree(screen);
+    XFree(disp);
 
     /* Construct i3lock call */
     /* 7 chars for "i3lock " and one for "\0" */
@@ -127,6 +133,5 @@ int main(int argc, char **argv)
         fprintf(stderr, "i3lock-next:%s:%d warn: i3lock exited with status "
                 "%d\n", __FILE__, __LINE__, i3lock_status);
     FREE(i3lock);
-
     yuck_free(argp);
 }

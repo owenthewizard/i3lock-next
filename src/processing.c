@@ -156,8 +156,8 @@ void set_imlib2_context(Display *d, const Window w, const int screen,
                         const char *font_arg, const char *size)
 {
     imlib_context_set_display(d);
-    Visual *vis = DefaultVisual(d, screen);
-    imlib_context_set_visual(vis);
+    imlib_context_set_anti_alias(1);
+    imlib_context_set_visual(DefaultVisual(d, screen));
     imlib_context_set_colormap(DefaultColormap(d, screen));
     imlib_context_set_drawable(w);
 
@@ -196,4 +196,5 @@ void set_imlib2_context(Display *d, const Window w, const int screen,
     D_PRINTF("%s\n", imlib_font_arg);
     FREE(imlib_font_arg);
     FcPatternDestroy(temp);
+    FREE(font);
 }
