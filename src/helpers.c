@@ -70,7 +70,7 @@ int get_monitor_count(Display *d, const Window w)
    on `command` results in an empty string
    
    however, add_radius_to_args() is fine */
-void add_args_to_command(const char **argv, const int argc, char **command)
+void add_args_to_command(char **argv, const int argc, char **command)
 {
     /* don't pass arguments before "--" */
     size_t i = 0;
