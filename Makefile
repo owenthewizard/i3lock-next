@@ -31,46 +31,46 @@ OBJ          = $(patsubst %, $(OBJ_DIR)/%, $(OBJ_LIST))
 LIBS        := $$(pkg-config --libs fontconfig imlib2 x11 xrandr) -lm
 
 ## To keep lines <80 characters
-NOTE    := 'NOTE: empty directories may exist if you had nothing installed in '
+NOTE    := Empty directories may exist if you had nothing installed in 
 			
-NOTE2   := 'Make sure to delete i3lock-next/i3lock-next.ini from your user\'s'
+NOTE2   := Make sure to delete i3lock-next/i3lock-next.ini from your user 
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	@echo Compiling $<
+	$(info Compiling $<)
 	@mkdir -p $(OBJ_DIR)
 	@$(CC) -c -o $@ $< $(CFLAGS) $(LIBS)
 
 $(TARGET): $(OBJ)
 	@mkdir -p $(BIN_DIR)
-	@echo Linking $^
+	$(info Linking $^)
 	@$(CC) -o $(BIN_DIR)/$@ $^ $(CFLAGS) $(LIBS)
-	@echo Build complete
+	$(info Build complete)
 
 debug: CFLAGS += -Og -ggdb -fno-omit-frame-pointer -DDEBUG
 debug: $(TARGET)
 
 install:
-	@echo Stripping unneeded symbols from binary
+	$(info Stripping unneeded symbols from binary)
 	@strip --strip-unneeded -R .comment $(BIN_DIR)/$(TARGET)
-	@echo Creating necessary directories
+	$(info Creating necessary directories)
 	@install -m 755 -d $(DESTDIR)$(PREFIX)/bin
 	@install -m 755 -d $(DESTDIR)$(PREFIX)$(DATAROOTDIR)/$(TARGET)
-	@echo Installing binary and data
+	$(info Installing binary and data)
 	@install -m 755 $(BIN_DIR)/$(TARGET) $(DESTDIR)$(PREFIX)/bin/$(TARGET)
 	@install -m 644 data/* $(DESTDIR)$(PREFIX)$(DATAROOTDIR)/$(TARGET)/
-	@echo Install to $(DESTDIR)$(PREFIX) complete
+	$(info Install to $(DESTDIR)$(PREFIX) complete)
 
 uninstall:
-	@echo Removing binary and data directories
+	$(info Removing binary and data directories)
 	@rm $(DESTDIR)$(PREFIX)/bin/$(TARGET)
 	@rm -r $(DESTDIR)$(PREFIX)$(DATAROOTDIR)/$(TARGET)
-	@echo Uninstall complete
-	@echo $(NOTE)$(DESTDIR)$(PREFIX)
-	@echo '$(NOTE2).config directory'
+	$(info Uninstall complete)
+	$(info $(NOTE)$(DESTDIR)$(PREFIX))
+	$(info $(NOTE2).config directory)
 
 clean:
 	@rm -rf $(OBJ_DIR) $(BIN_DIR)
-	@echo Cleaned up $(OBJ_DIR) and $(BIN_DIR)
+	$(info Cleaned up $(OBJ_DIR) and $(BIN_DIR))
 
 .PHONY: install uninstall debug clean
 
