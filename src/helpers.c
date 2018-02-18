@@ -38,6 +38,7 @@ char *get_font_file(FcConfig *config, const char *font_name, FcPattern **font)
 
 Imlib_Image *get_lock(const char *lock_arg, const bool dark)
 {
+    /*
     char *default_lock = (dark)?
         malloc(sizeof(char) * (strlen(DEFAULT_LOCK_DARK) + 1)) :
         malloc(sizeof(char) * (strlen(DEFAULT_LOCK_LIGHT) + 1));
@@ -56,6 +57,26 @@ Imlib_Image *get_lock(const char *lock_arg, const bool dark)
                 "while loading lock image\n", __FILE__, __LINE__, error);
     FREE(default_lock);
     return lock;
+    */
+
+    Imlib_Load_Error error = IMLIB_LOAD_ERROR_NONE;
+    Imlib_Image *lock;
+    if (lock_arg)
+        lock = imlib_load_image_with_error_return(lock_arg, &error);
+    else
+    {
+        if (dark)
+            lock = imlib_load_image_with_error_return(DEFAULT_LOCK_DARK,
+                                                      &error);
+        else
+            lock = imlib_load_image_with_error_return(DEFAULT_LOCK_LIGHT,
+                                                      &error);
+    }
+    if (error != IMLIB_LOAD_ERROR_NONE)
+        fprintf(stderr, "i3lock-next:%s:%d warn: Imlib_Load_Error %d set "
+                "while loading lock image\n", __FILE__, __LINE__, error);
+    return lock;
+
 }
 
 int get_monitor_count(Display *d, const Window w)
