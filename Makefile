@@ -55,7 +55,8 @@ debug: $(TARGET)
 
 genman:
 	$(info Generating manpage)
-	@help2man -N -n "$(MAN_N)" $(BIN_DIR)/$(TARGET) > man/$(TARGET).1
+	@mkdir -p $(BLD_DIR)/man
+	@help2man -N -n "$(MAN_N)" $(BIN_DIR)/$(TARGET) > $(BLD_DIR)/man/$(TARGET).1
 
 install:
 	$(info Stripping unneeded symbols from binary)
@@ -68,7 +69,7 @@ install:
 	@install -m 755 $(BIN_DIR)/$(TARGET) $(DESTDIR)$(PREFIX)/bin/$(TARGET)
 	@install -m 644 data/* $(DESTDIR)$(PREFIX)$(DATAROOTDIR)/$(TARGET)/
 	$(info Installing man file)
-	@install -m 644 man/$(TARGET).1 $(DESTDIR)$(PREFIX)$(DATAROOTDIR)/man/man1/
+	@install -m 644 $(BLD_DIR)/man/$(TARGET).1 $(DESTDIR)$(PREFIX)$(DATAROOTDIR)/man/man1/
 	$(info Install to $(DESTDIR)$(PREFIX) complete)
 
 uninstall:
@@ -82,11 +83,10 @@ uninstall:
 	$(info $(NOTE2).config directory)
 
 clean:
-	@rm -rf $(OBJ_DIR) $(BIN_DIR)
+	@rm -rf $(OBJ_DIR) $(BIN_DIR) $(BLD_DIR)/man
 	@rm $(SRC_DIR)/include/$(TARGET).yucc
-	@rm man/$(TARGET).1
 	$(info Cleaned up $(OBJ_DIR) and $(BIN_DIR) as well as \
-		$(SRC_DIR)/include/$(TARGET).yucc and man/$(TARGET).1)
+		$(SRC_DIR)/include/$(TARGET).yucc)
 
 .PHONY: install uninstall debug clean prepare
 
