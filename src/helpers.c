@@ -82,10 +82,9 @@ void add_args_to_command(char **argv, const int argc, char **command)
     {
         /* X chars for argv[i] + 1 chars for " " */
         /* space for "\0" already allocated */
-        /* + 1 to fix segfault bugs probably for "\0" */
         *command = realloc(*command, sizeof(char) * (strlen(*command)
                                  + strlen(*(argv + i))
-                                 + 2));
+                                 + 1));
         sprintf(*command + strlen(*command), "%s ", *(argv + i));
     }
 }
