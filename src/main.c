@@ -23,6 +23,10 @@
 
 int main(int argc, char **argv)
 {
+    /* Read arguments */
+    yuck_t argp[1];
+    yuck_parse(argp, argc, argv);
+
     /* Init some variables */
     Display *disp = XOpenDisplay(NULL);
     if (!disp)
@@ -37,10 +41,6 @@ int main(int argc, char **argv)
     D_PRINTF("Total resolution: %dx%d\n", total_width, total_height);
     int monitors = get_monitor_count(disp, root);
     D_PRINTF("Found %d monitor(s)\n", monitors);
-
-    /* Read arguments */
-    yuck_t argp[1];
-    yuck_parse(argp, argc, argv);
 
     Method distortion = get_distort(argp->method_arg);
 
