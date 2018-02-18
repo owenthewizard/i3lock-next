@@ -15,20 +15,26 @@
 #include "i3lock-next.h"
 
 #include <errno.h>
+#include <inttypes.h>
 #include <string.h>
 
 float get_gamma(const char *gamma_arg)
 {
     errno = 0;
     D_PRINTF("Gamma arg: %s\n", gamma_arg);
-    return (gamma_arg)? strtof(gamma_arg, NULL) : DEFAULT_GAMMA;
+    return (gamma_arg)? strtof(gamma_arg, NULL) : (float) DEFAULT_GAMMA;
 }
 
 int8_t get_threshold(const char *threshold_arg)
 {
     errno = 0;
     D_PRINTF("Threshold arg: %s\n", threshold_arg);
-    return (threshold_arg)? strtol(threshold_arg, NULL, 10) : DEFAULT_THRESH;
+    int8_t thresh;
+    if (threshold_arg)
+        sscanf(threshold_arg, "%"SCNd8, &thresh);
+    else
+        thresh = DEFAULT_THRESH;
+    return thresh;
 }
 
 Method get_distort(const char *distort_arg)
@@ -53,28 +59,48 @@ uint8_t get_blur_iter(const char *blur_arg)
 {
     errno = 0;
     D_PRINTF("Blur iter arg: %s\n", blur_arg);
-    return (blur_arg)? strtol(blur_arg, NULL, 10) : DEFAULT_ITER;
+    uint8_t iter;
+    if (blur_arg)
+        sscanf(blur_arg, "%"SCNu8, &iter);
+    else
+        iter = DEFAULT_ITER;
+    return iter;
 }
 
 uint8_t get_blur_strength(const char *blur_arg)
 {
     errno = 0;
     D_PRINTF("Blur strength arg: %s\n", blur_arg);
-    return (blur_arg)? strtol(blur_arg, NULL, 10) : DEFAULT_STRENGTH;
+    uint8_t strength;
+    if (blur_arg)
+        sscanf(blur_arg, "%"SCNu8, &strength);
+    else
+        strength = DEFAULT_STRENGTH;
+    return strength;
 }
 
 uint8_t get_font_size(const char *font_size)
 {
     errno = 0;
     D_PRINTF("Font size arg: %s\n", font_size);
-    return (font_size)? strtol(font_size, NULL, 10) : DEFAULT_FONT_SIZE;
+    uint8_t font_sz;
+    if (font_size)
+        sscanf(font_size, "%"SCNu8, &font_sz);
+    else
+        font_sz = DEFAULT_FONT_SIZE;
+    return font_sz;
 }
 
 uint8_t get_text_index(const char *index_arg)
 {
     errno = 0;
+    uint8_t index;
     D_PRINTF("Text index arg: %s\n", index_arg);
-    return (index_arg)? strtol(index_arg, NULL, 10) : 0;
+    if (index_arg)
+        sscanf(index_arg, "%"SCNu8, &index);
+    else
+        index = 0;
+    return index;
 }
 
 uint8_t get_scale(const char *scale_arg)
@@ -82,6 +108,9 @@ uint8_t get_scale(const char *scale_arg)
     errno = 0;
     uint8_t scale;
     D_PRINTF("Scale factor arg: %s\n", scale_arg);
-    scale = (scale_arg)? strtol(scale_arg, NULL, 10) : DEFAULT_SCALE;
+    if (scale_arg)
+        sscanf(scale_arg, "%"SCNu8, &scale);
+    else
+        scale = DEFAULT_SCALE;
     return (scale > 0)? scale : 1;
 }

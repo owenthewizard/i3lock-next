@@ -58,8 +58,8 @@ void distort(Imlib_Image *im, const Method m, const yuck_t *argp)
 
 void draw_lock_icons(Imlib_Image *im, Imlib_Image *lock_d, Imlib_Image *lock_l,
                      const int *centers_x, const int *centers_y,
-                     const int8_t threshold, const int monitors, int *lock_w,
-                     int *lock_h)
+                     const int8_t threshold, const size_t monitors,
+                     int *lock_w, int *lock_h)
 {
     imlib_context_set_image(lock_d);
     *lock_w = imlib_image_get_width();
@@ -129,7 +129,7 @@ void draw_text(Imlib_Image *im, const char *prompt, const char *index_arg,
     Imlib_Image *cropped =
         imlib_create_cropped_scaled_image(*(centers_x + index)
                                           - text_offset_w / 2,
-                                          *(centers_y + index) * 1.5,
+                                          (int) (*(centers_y + index) * 1.5),
                                           text_offset_w, text_offset_h, 1, 1);
     imlib_context_set_image(cropped);
     imlib_image_query_pixel_hlsa(0, 0, (float*) &dum, &light, (float*) &dum,
@@ -145,10 +145,10 @@ void draw_text(Imlib_Image *im, const char *prompt, const char *index_arg,
     imlib_context_set_image(im);
     if (prompt && text_offset_w)
         imlib_text_draw(*(centers_x + index) - text_offset_w / 2, 
-                        *(centers_y + index) * 1.5, prompt);
+                        (int) (*(centers_y + index) * 1.5), prompt);
     else if (text_offset_w)
         imlib_text_draw(*(centers_x + index) - text_offset_w / 2,
-                        *(centers_y + index) * 1.5, DEFAULT_PROMPT);
+                        (int) (*(centers_y + index) * 1.5), DEFAULT_PROMPT);
     imlib_free_font();
 }
 

@@ -39,8 +39,8 @@ int main(int argc, char **argv)
     int total_width = screen->width;
     int total_height = screen->height;
     D_PRINTF("Total resolution: %dx%d\n", total_width, total_height);
-    int monitors = get_monitor_count(disp, root);
-    D_PRINTF("Found %d monitor(s)\n", monitors);
+    size_t monitors = (size_t) get_monitor_count(disp, root);
+    D_PRINTF("Found %zu monitor(s)\n", monitors);
 
     Method distortion = get_distort(argp->method_arg);
 

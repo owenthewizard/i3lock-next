@@ -74,10 +74,11 @@ void add_args_to_command(char **argv, const int argc, char **command)
 {
     /* don't pass arguments before "--" */
     size_t i = 0;
-    while (strcmp(*(argv + i), "--") != 0 && i < argc - 1)
+    /* dangerous cast? */
+    while (strcmp(*(argv + i), "--") != 0 && i < (unsigned) (argc - 1))
         i++;
     /* pass arguments, starting at argv[i+1] */
-    while (++i < argc)
+    while (++i < (unsigned) argc)
     {
         /* X chars for argv[i] + 1 chars for " " */
         /* space for "\0" already allocated */
@@ -112,7 +113,7 @@ void die(const char *message, const char *file, const int line,
     exit(code);
 }
 
-void get_monitor_centers(Display *d, const Window w, const int monitors,
+void get_monitor_centers(Display *d, const Window w, const size_t monitors,
                          int *centers_x, int *centers_y)
 {
     XRRScreenResources *screens = XRRGetScreenResources(d, w);
