@@ -134,4 +134,6 @@ int main(int argc, char **argv)
                 "%d\n", __FILE__, __LINE__, i3lock_status);
     FREE(i3lock);
     yuck_free(argp);
+
+    return i3lock_status;
 }
