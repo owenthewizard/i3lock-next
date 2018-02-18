@@ -44,7 +44,7 @@ $(TARGET): $(OBJ)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c prepare
 	$(info Compiling $<)
 	@mkdir -p $(OBJ_DIR)
-	@$(CC) -c -o $@ $< $(CFLAGS) $(LIBS)
+	@$(CC) -c -o $@ $< $(CFLAGS)
 
 prepare:
 	@$(shell ./replace_yucc_defaults.sh $(TARGET))
