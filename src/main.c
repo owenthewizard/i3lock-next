@@ -104,16 +104,27 @@ int main(int argc, char **argv)
         D_PRINTF("Imlib_Load_Error set while saving: %d\n", imlib_error);
     imlib_free_image();
 
+    /* Construct i3lock call */
+    /* 7 chars for "i3lock " and one for "\0" */
+    char *i3lock = malloc(sizeof(char) * 8);
+    strcpy(i3lock, "i3lock ");
+
+    add_radius_to_args(i3lock, lock_w, lock_h);
+    add_args_to_command(argv, argc, &i3lock);
+
+    /* 3 chars for "-i " + X chars for file_name */
+    /* space for "\0" already allocated */
+    i3lock = realloc(i3lock,
+                     sizeof(char) * (strlen(i3lock) + strlen(file_name) + 3));
+    sprintf(i3lock + strlen(i3lock), "-i %s", file_name);
+
     /* Call i3lock */
-    //TODO: pass args
-    char *i3lock = malloc(sizeof(char) * 11
-            + sizeof(char) * strlen(file_name));
-    strcpy(i3lock, "i3lock -i ");
-    strcat(i3lock, file_name);
-    //system(i3lock);
+    int i3lock_status = system(i3lock);
     unlink(file_name);
+    if (i3lock_status != 0)
+        fprintf(stderr, "i3lock-next: warning: i3lock exited with status %d\n",
+                i3lock_status);
     FREE(i3lock);
 
-    /* Cleanup */
     yuck_free(argp);
 }

@@ -28,7 +28,7 @@ BIN_DIR	:= $(BLD_DIR)/bin
 OBJ_LIST    := helpers.o main.o processing.o sanitizers.o
 OBJ          = $(patsubst %, $(OBJ_DIR)/%, $(OBJ_LIST))
 
-LIBS        := $$(pkg-config --libs fontconfig imlib2 x11 xrandr)
+LIBS        := $$(pkg-config --libs fontconfig imlib2 x11 xrandr) -lm
 
 ## To keep lines <80 characters
 NOTE    := 'NOTE: empty directories may exist if you had nothing installed in '

@@ -5,10 +5,10 @@ This rewrite is a work in progress. See [TODO.md](TODO.md) for details.
 Now over 20% faster!
 
 - [x] get font
-- [ ] calculate ring size
+- [x] calculate ring size
 - [x] draw text
 - [x] gamma adjust
-- [ ] call i3lock (and pass args)
+- [x] call i3lock (and pass args)
 - [x] scale
 - [ ] more media examples (pixelate and blur with various settings
 - [x] blur and pixelate
@@ -18,3 +18,6 @@ Now over 20% faster!
 - [ ] text color
 - [x] sorting
 - [ ] config
+- [ ] brightness vs gamma
+- [ ] GNU error messages (warn())
+- [ ] style guide
