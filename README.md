@@ -15,7 +15,7 @@ Now ~20% faster!
 - [x] draw lock icons (proper light/dark)
 - [ ] replace variables in i3lock-next.yucc
 - [ ] thoroughly check with valgrind
-- [ ] text color
+- [x] text color
 - [x] sorting
 - [ ] config
 - [x] brightness vs gamma
