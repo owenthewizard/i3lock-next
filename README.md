@@ -2,8 +2,6 @@
 
 This rewrite is a work in progress. See [TODO.md](TODO.md) for details.
 
-Now ~20% faster!
-
 - [x] get font
 - [x] calculate ring size
 - [x] draw text
