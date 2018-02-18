@@ -24,7 +24,7 @@ void adjust_gamma(Imlib_Image *i, const char *gamma_arg)
     imlib_context_set_image(i);
 
     float gamma = get_gamma(gamma_arg);
-    warn_if_errno("gamma");
+    warn_if_errno("gamma", __FILE__, __LINE__);
     D_PRINTF("Gamma set to %.2f\n", gamma);
 
     imlib_context_set_color_modifier(imlib_create_color_modifier());
@@ -99,7 +99,7 @@ void draw_text(Imlib_Image *i, const char *prompt, const char *index_arg,
                const int *centers_x, const int *centers_y)
 {
     uint8_t index = get_text_index(index_arg);
-    warn_if_errno("text index");
+    warn_if_errno("text index", __FILE__, __LINE__);
 
     D_PRINTF("Prompt arg: %s\n", prompt);
     int text_offset_w, dum;
@@ -151,17 +151,17 @@ void set_imlib2_context(Display *d, const Window w, const int screen,
         get_font_file(config, DEFAULT_FONT, &temp);
     FcConfigDestroy(config);
     if (!font)
-        die("Failed to fine an appropriate font", 30);
+        die("Failed to fine an appropriate font", __FILE__, __LINE__, 30);
 
     D_PRINTF("Font size arg: %s\n", size);
     uint8_t font_size = get_font_size(size);
-    warn_if_errno("font size");
+    warn_if_errno("font size", __FILE__, __LINE__);
     
     char *imlib_font_arg = malloc(sizeof(char) * (strlen(font) + 4));
     if (imlib_font_arg)
         sprintf(imlib_font_arg, "%s/%"PRIu8, font, font_size);
     else
-        die("malloc() failed!", 40);
+        die("malloc() failed!", __FILE__, __LINE__, 40);
 
     imlib_context_set_font(imlib_load_font(imlib_font_arg));
     D_PRINTF("Loaded font file: %s with size %"PRIu8"\n", font, font_size);

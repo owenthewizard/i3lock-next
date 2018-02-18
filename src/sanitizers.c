@@ -43,7 +43,8 @@ Method get_distort(const char *distort_arg)
     else if (strcasecmp(distort_arg, "none") == 0)
         return NONE;
     else
-        die("METHOD must be any-of {blur, pixelate, none}", 20);
+        die("METHOD must be any-of {blur, pixelate, none}", __FILE__,
+            __LINE__, 20);
     /* Unreachable code to satisfy compiler warning*/
     return BLUR;
 }

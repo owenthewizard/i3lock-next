@@ -52,8 +52,8 @@ Imlib_Image *get_lock(const char *lock_arg, const bool dark)
         imlib_load_image_with_error_return(lock_arg, &error) :
         imlib_load_image_with_error_return(default_lock, &error);
     if (error != IMLIB_LOAD_ERROR_NONE)
-        fprintf(stderr, "i3lock-next: warning: Imlib_Load_Error %d set while "
-                "loading lock image\n", error);
+        fprintf(stderr, "i3lock-next:%s:%d warn: Imlib_Load_Error %d set "
+                "while loading lock image\n", __FILE__, __LINE__, error);
     FREE(default_lock);
     return lock;
 }
@@ -81,13 +81,10 @@ void add_args_to_command(const char **argv, const int argc, char **command)
     {
         /* X chars for argv[i] + 1 chars for " " */
         /* space for "\0" already allocated */
-        D_PRINTF("i3lock: |%s|\n", *command);
         *command = realloc(*command, sizeof(char) * (strlen(*command)
                                  + strlen(*(argv + i))
                                  + 1));
-        D_PRINTF("i3lock: |%s|\n", *command);
         sprintf(*command + strlen(*command), "%s ", *(argv + i));
-        D_PRINTF("i3lock: |%s|\n", *command);
     }
 }
 
@@ -108,9 +105,10 @@ void add_radius_to_args(char *args, const int lock_w, const int lock_h)
     sprintf(args + strlen(args), "--radius=%"PRIu8" ", radius);
 }
 
-void die(const char *message, uint8_t code)
+void die(const char *message, const char *file, const int line,
+         const uint8_t code)
 {
-    fprintf(stderr, "i3lock-next: error: %s\n", message);
+    fprintf(stderr, "i3lock-next:%s:%d: error: %s\n", file, line, message);
     exit(code);
 }
 
@@ -135,9 +133,12 @@ void get_monitor_centers(Display *d, const Window w, const int monitors,
     XRRFreeScreenResources(screens);
 }
 
-void warn_if_errno(const char *property)
+void warn(const char *message, const char *file, const int line)
+{ fprintf(stderr, "i3lock-next:%s:%d: warn: %s\n", file, line, message); }
+
+void warn_if_errno(const char *property, const char *file, const int line)
 {
     if (errno != 0)
-        fprintf(stderr, "i3lock-next: warning: errno set to %d (%s) while "
-                "parsing %s\n", errno, strerror(errno), property);
+        fprintf(stderr, "i3lock-next:%s:%d: warn: errno set to %d (%s) while "
+                "parsing %s\n", file, line, errno, strerror(errno), property);
 }

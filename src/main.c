@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     /* Init some variables */
     Display *disp = XOpenDisplay(NULL);
     if (!disp)
-        die("i3lock-next: error: failed to open display", 10);
+        die("Failed to open display", __FILE__, __LINE__, 10);
     Window root = DefaultRootWindow(disp);
     Screen *screen = DefaultScreenOfDisplay(disp);
     //int screen_n = DefaultScreen(disp);
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
         scale = 1;
     else
         scale = get_scale(argp->scale_factor_arg);
-    warn_if_errno("scale");
+    warn_if_errno("scale", __FILE__, __LINE__);
     D_PRINTF("Scale set to %"PRIu8"\n", scale);
 
     D_PRINTF("%s\n", "Setting Imlib2 context...");
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
     Imlib_Image *lock_d = get_lock(argp->lock_dark_arg, true);
     Imlib_Image *lock_l = get_lock(argp->lock_light_arg, false);
     int8_t threshold = get_threshold(argp->threshold_arg);
-    warn_if_errno("threshold");
+    warn_if_errno("threshold", __FILE__, __LINE__);
 
     int lock_w, lock_h;
 
@@ -119,11 +119,12 @@ int main(int argc, char **argv)
     sprintf(i3lock + strlen(i3lock), "-i %s", file_name);
 
     /* Call i3lock */
+    D_PRINTF("Running |%s|\n", i3lock);
     int i3lock_status = system(i3lock);
     unlink(file_name);
     if (i3lock_status != 0)
-        fprintf(stderr, "i3lock-next: warning: i3lock exited with status %d\n",
-                i3lock_status);
+        fprintf(stderr, "i3lock-next:%s:%d warn: i3lock exited with status "
+                "%d\n", __FILE__, __LINE__, i3lock_status);
     FREE(i3lock);
 
     yuck_free(argp);

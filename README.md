@@ -2,7 +2,7 @@
 
 This rewrite is a work in progress. See [TODO.md](TODO.md) for details.
 
-Now over 20% faster!
+Now ~20% faster!
 
 - [x] get font
 - [x] calculate ring size
@@ -18,6 +18,6 @@ Now over 20% faster!
 - [ ] text color
 - [x] sorting
 - [ ] config
-- [ ] brightness vs gamma
-- [ ] GNU error messages (warn())
+- [x] brightness vs gamma
+- [x] GNU error messages (warn())
 - [ ] style guide
