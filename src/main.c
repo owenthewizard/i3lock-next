@@ -63,7 +63,7 @@ int main(int argc, char **argv)
                                                 total_height,
                                                 total_width / scale,
                                                 total_height / scale,
-                                                true, false);
+                                                true, true);
     distort(screenshot, distortion, argp);
 
     if (scale != 1)
@@ -121,6 +121,7 @@ int main(int argc, char **argv)
     /* Call i3lock */
     D_PRINTF("Running |%s|\n", i3lock);
     int i3lock_status = system(i3lock);
+    //int i3lock_status = system("true");
     unlink(file_name);
     if (i3lock_status != 0)
         fprintf(stderr, "i3lock-next:%s:%d warn: i3lock exited with status "
