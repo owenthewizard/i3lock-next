@@ -72,10 +72,9 @@ void draw_lock_icons(Imlib_Image *im, Imlib_Image *lock_d, Imlib_Image *lock_l,
     {
         imlib_context_set_image(im);
         cropped =
-            imlib_create_cropped_scaled_image(
-                    *(centers_x + i) - *lock_w / 2,
-                    *(centers_y + i) - *lock_h / 2,
-                    *lock_w, *lock_h, 1, 1);
+            imlib_create_cropped_scaled_image(*(centers_x + i) - *lock_w / 2,
+                                              *(centers_y + i) - *lock_h / 2,
+                                              *lock_w, *lock_h, 1, 1);
         imlib_context_set_image(cropped);
         imlib_image_query_pixel_hlsa(0, 0, &dum, &light, &dum, (int*) &dum);
         imlib_free_image();
@@ -94,33 +93,62 @@ void draw_lock_icons(Imlib_Image *im, Imlib_Image *lock_d, Imlib_Image *lock_l,
     }
 }
 
-void draw_text(Imlib_Image *i, const char *prompt, const char *index_arg,
-               const int w, const int h, const int lock_h,
+void draw_text(Imlib_Image *im, const char *prompt, const char *index_arg,
+               const int8_t threshold, const int w, const int h,
                const int *centers_x, const int *centers_y)
 {
+    /* Check if we need to draw text */
+    if ((!prompt && strcmp(DEFAULT_PROMPT, "") == 0)
+        || strcmp(prompt, "") == 0)
+    {
+        D_PRINTF("%s\n", "Text drawing skipped");
+        return;
+    }
+
     uint8_t index = get_text_index(index_arg);
     warn_if_errno("text index", __FILE__, __LINE__);
 
+    /* Calculate text offsets */
     D_PRINTF("Prompt arg: %s\n", prompt);
-    int text_offset_w, dum;
+    int text_offset_w, text_offset_h, dum;
     imlib_context_set_image(imlib_create_image(w, h));
     /* prompt set via argument and is not "" */
     if (prompt && strcmp(prompt, "") != 0)
-        imlib_text_draw_with_return_metrics(0, 0, prompt, &text_offset_w, &dum,
-                                            &dum, &dum);
+        imlib_text_draw_with_return_metrics(0, 0, prompt, &text_offset_w,
+                                            &text_offset_h, &dum, &dum);
     /* prompt argument unset and default prompt is not "" */
-    else if (strcmp(DEFAULT_PROMPT, "") != 0)
+    else
         imlib_text_draw_with_return_metrics(0, 0, DEFAULT_PROMPT,
-                &text_offset_w, &dum, &dum, &dum);
+                                            &text_offset_w, &text_offset_h,
+                                            &dum, &dum);
     imlib_free_image();
 
-    imlib_context_set_image(i);
+    /* Get text area lightness */
+    float light;
+    imlib_context_set_image(im);
+    Imlib_Image *cropped =
+        imlib_create_cropped_scaled_image(*(centers_x + index)
+                                          - text_offset_w / 2,
+                                          *(centers_y + index) * 1.5,
+                                          text_offset_w, text_offset_h, 1, 1);
+    imlib_context_set_image(cropped);
+    imlib_image_query_pixel_hlsa(0, 0, (float*) &dum, &light, (float*) &dum,
+                                 &dum);
+    imlib_free_image();
+
+    if (light * 100 > threshold)
+        imlib_context_set_color(0, 0, 0, 255);
+    else
+        imlib_context_set_color(255, 255, 255, 255);
+
+    /* Draw text */
+    imlib_context_set_image(im);
     if (prompt && text_offset_w)
         imlib_text_draw(*(centers_x + index) - text_offset_w / 2, 
-                        *(centers_y + index) + lock_h * 3, prompt);
+                        *(centers_y + index) * 1.5, prompt);
     else if (text_offset_w)
         imlib_text_draw(*(centers_x + index) - text_offset_w / 2,
-                        *(centers_y + index) + lock_h * 3, DEFAULT_PROMPT);
+                        *(centers_y + index) * 1.5, DEFAULT_PROMPT);
     imlib_free_font();
 }
 

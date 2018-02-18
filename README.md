@@ -21,3 +21,5 @@ Now ~20% faster!
 - [x] brightness vs gamma
 - [x] GNU error messages (warn())
 - [ ] style guide
+- [ ] replace certain instances of strtol() with sscanf()
+- [ ] ring colors

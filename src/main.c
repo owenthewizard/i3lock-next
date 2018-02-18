@@ -92,8 +92,8 @@ int main(int argc, char **argv)
     XFree(screen);
     XFree(disp);
 
-    draw_text(screenshot, argp->prompt_arg, argp->text_index_arg, total_width,
-              total_height, lock_h, centers_x, centers_y);
+    draw_text(screenshot, argp->prompt_arg, argp->text_index_arg, threshold,
+              total_width, total_height, centers_x, centers_y);
 
     char file_name[] = P_tmpdir"/i3lock-next.XXXXXX.png";
     mkstemps(file_name, 4);

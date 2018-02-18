@@ -15,7 +15,7 @@ void adjust_gamma(Imlib_Image*, const char*);
 void distort(Imlib_Image*, const Method, const yuck_t*);
 void draw_lock_icons(Imlib_Image*, Imlib_Image*, Imlib_Image*, const int*,
                      const int*, const int8_t, const int, int*, int*);
-void draw_text(Imlib_Image*, const char*, const char*, const int, const int,
+void draw_text(Imlib_Image*, const char*, const char*, const int8_t, const int,
                const int, const int*, const int*);
 void set_imlib2_context(Display*, const Window, const int, const char*,
                         const char*);
