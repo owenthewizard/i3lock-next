@@ -33,9 +33,9 @@ void adjust_gamma(Imlib_Image *i, const char *gamma_arg)
     imlib_free_color_modifier();
 }
 
-void distort(Imlib_Image *i, const Method m, const yuck_t *argp)
+void distort(Imlib_Image *im, const Method m, const yuck_t *argp)
 {
-    imlib_context_set_image(i);
+    imlib_context_set_image(im);
     
     uint8_t blur_strength, blur_iter;
     switch(m)
