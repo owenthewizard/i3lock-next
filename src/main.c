@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 
     /* Call i3lock */
     D_PRINTF("Running |%s|\n", i3lock);
-    int i3lock_status = system(i3lock);
+    int i3lock_status = DEBUG_SYSTEM(i3lock);
     //int i3lock_status = system("true");
     unlink(file_name);
     if (i3lock_status != 0)
