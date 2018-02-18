@@ -495,17 +495,16 @@ static void yuck_auto_help(const yuck_t src[static 1U])
   -r, --strength=STRENGTH\n\
                         Use RADIUS as the gaussian blur radius, when using\n\
                         the blur METHOD. Has no effect with other METHODs.\n\
-                        Higher values take longer. This version was compiled\n\
-                        with DEFAULT_RADIUS as default.\n\
-  -i, --iter=ITERATIONS  Blur the image ITERATIONS times, when using the blur\n\
-                        THOD. Has no effect with other METHODS. Higher values\n\
-                        ke longer. This version was compiled with DEFAULT_ITER\n\
-                        default.\n\
+                        Higher values take longer. This version was\n\
+                        compiled with DEFAULT_RADIUS as default.\n\
+  -i, --iter=ITERATIONS  Blur the image ITERATIONS times, when using the\n\
+                        blur METHOD. Has no effect with other METHODS.\n\
+                        Higher values take longer. This version was\n\
+                        compiled with DEFAULT_ITER as default.\n\
   -g, --gamma=AMOUNT    Adjust the gamm by AMOUNT. Values less than 1.0\n\
                         darken, while greater than 1.0 brighten. A value\n\
-                        of 1.0 effectively disables this. This\n\
-                        version was compiled with DEFAULT_GAMMA as\n\
-                        default.\n\
+                        of 1.0 effectively disables this. This version was\n\
+                        compiled with DEFAULT_GAMMA as default.\n\
   -p, --scale-factor=FACTOR\n\
                         Scale factor to apply when using pixelate METHOD,\n\
                         or scale factor to apply before blurring when\n\
@@ -516,23 +515,23 @@ static void yuck_auto_help(const yuck_t src[static 1U])
                         with DEFAULT_SCALE as default.\n\
   -t, --threshold=THRESH\n\
                         Threshold to discern between light and dark\n\
-                        backgrounds. If the average image lightness is greater\n\
-                        than this value, the dark lock image is used.\n\
-                        Otherwise, the light lock image is used. This\n\
-                        version was compiled with DEFAULT_THRESH as\n\
+                        backgrounds. If the average image lightness is\n\
+                        greater than this value, the dark lock image is\n\
+                        used. Otherwise, the light lock image is used.\n\
+                        This version was compiled with DEFAULT_THRESH as\n\
                         default.\n\
-  -w, --prompt=STRING   Text to draw on the monitor at INDEX. This version was\n\
-                        compiled with DEFAULT_PROMPT as default.\n\
+  -w, --prompt=STRING   Text to draw on the monitor at INDEX. This version\n\
+                        was compiled with DEFAULT_PROMPT as default.\n\
   -n, --text-index=INDEX\n\
                         Monitor number to draw text on, if any. Default 0.\n\
-  -f, --font=FONT       Font to use when drawing text. This verion was compiled\n\
-                        with DEFAULT_FONT as default.\n\
-  -s, --font-size=SIZE  Font size to use when drawing text. This version was\n\
-                        compiled with DEFAULT_FONT_SIZE as default.\n\
-  -l, --lock-light=FILE  Use FILE as the light lock icon. Default is\n\
-                        PREFIX/share/i3lock-next/lock-light.png.\n\
-  -d, --lock-dark=FILE  Use FILE as the dark lock icon. Default is\n\
-                        PREFIX/share/i3lock-next/lock-dark.png.\n\
+  -f, --font=FONT       Font to use when drawing text. This verion was\n\
+                        compiled with DEFAULT_FONT as default.\n\
+  -s, --font-size=SIZE  Font size to use when drawing text. This version\n\
+                        was compiled with DEFAULT_FONT_SIZE as default.\n\
+  -l, --lock-light=FILE  Use FILE as the light lock icon. This version was\n\
+                        compiled with DEFAULT_LOCK_LIGHT as default.\n\
+  -d, --lock-dark=FILE  Use FILE as the dark lock icon. This version was\n\
+                        compiled with DEFAULT_LOCK_DARK as default.\n\
 ");
 		break;
 
