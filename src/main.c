@@ -52,12 +52,19 @@ int main(int argc, char **argv)
     D_PRINTF("Scale set to %"PRIu8"\n", scale);
 
     D_PRINTF("%s\n", "Setting Imlib2 context...");
+    /* For some reason this causes random segfaults
     set_imlib2_context(disp, root, DefaultScreen(disp), argp->font_arg,
                        argp->font_size_arg);
+    */
+
+    imlib_context_set_display(disp);
+    imlib_context_set_visual(DefaultVisualOfScreen(screen));
+    imlib_context_set_colormap(DefaultColormapOfScreen(screen));
+    imlib_context_set_drawable(root);
 
     D_PRINTF("%s\n", "Taking screenshot");
     Imlib_Image *screenshot =
-        imlib_create_scaled_image_from_drawable((Pixmap) 0, 0, 0, total_width,
+        imlib_create_scaled_image_from_drawable(None, 0, 0, total_width,
                                                 total_height,
                                                 total_width / scale,
                                                 total_height / scale,
