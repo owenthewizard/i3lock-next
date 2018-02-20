@@ -42,7 +42,9 @@ void distort(Imlib_Image *im, const Method m, const yuck_t *argp)
     {
         case BLUR:
             blur_strength = get_blur_strength(argp->strength_arg);
+            D_PRINTF("Blur strength set to %"PRIu8"\n", blur_strength);
             blur_iter = get_blur_iter(argp->iter_arg);
+            D_PRINTF("Blur iterations set to %"PRIu8"\n", blur_iter);
             for (int8_t i = 0; i < blur_iter; i++)
                 imlib_image_blur(blur_strength);
             break;

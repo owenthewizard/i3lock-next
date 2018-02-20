@@ -87,6 +87,7 @@ int main(int argc, char **argv)
     Imlib_Image *lock_d = get_lock(argp->lock_dark_arg, true);
     Imlib_Image *lock_l = get_lock(argp->lock_light_arg, false);
     int8_t threshold = get_threshold(argp->threshold_arg);
+    D_PRINTF("Threshold set to %"PRId8"\n", threshold);
     warn_if_errno("threshold", __FILE__, __LINE__);
 
     int lock_w, lock_h;
