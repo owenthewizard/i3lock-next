@@ -32,3 +32,4 @@
 - [ ] thoroughly check with valgrind
 - [ ] more media examples (pixelate and blur with various settings
 - [ ] fix --version output
+- [ ] portability
