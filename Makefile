@@ -8,14 +8,8 @@ CC          ?= gcc
 SRC_DIR     := ./src
 ## Manual CFLAGS override this Makefile
 CFLAGS_DEFAULT  := $$(pkg-config --cflags fontconfig imlib2 x11 xrandr)       \
-                   -I$(SRC_DIR)/include                                       \
-                   -std=gnu11 -O2 -Wall -Wextra -Wconversion -Wshadow         \
-                   -Wmissing-prototypes -Wmissing-declarations                \
-                   -Wpointer-arith -Wwrite-strings -Wcast-qual                \
-                   -Wbad-function-cast -Wformat-security -Wcast-align         \
-                   -Wmissing-format-attribute -Winline -Wformat-nonliteral    \
-                   -Wstrict-prototypes -fomit-frame-pointer                   \
-                   -DPREFIX=\"$(PREFIX)\"
+                   -I$(SRC_DIR)/include -std=gnu11 -fomit-frame-pointer       \
+				   -O2 -Wall -Wextra @extra-warnings -DPREFIX=\"$(PREFIX)\"
 CFLAGS_DEFAULT  += $(CFLAGS)
 CFLAGS          := $(CFLAGS_DEFAULT)
 
