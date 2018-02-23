@@ -8,7 +8,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <stdarg.h>
 
 char *get_font_file(FcConfig*, const char*, FcPattern**);
 
