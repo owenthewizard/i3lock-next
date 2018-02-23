@@ -120,7 +120,7 @@ void add_radius_to_args(char *args, const int lock_w, const int lock_h)
     uint8_t radius_len = 1;
     //for (uint8_t temp = radius; temp /= 10; radius_len++);
     /* We're already using libmath so might as well use the faster log10 */
-    radius_len += (int) log10(radius);
+    radius_len += (uint8_t) log10(radius);
 
     /* 8 chars for "--radius=", radius_len chars for radius, 2 chars for " " */
     /* space for "\0" already allocated */
