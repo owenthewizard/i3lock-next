@@ -51,8 +51,6 @@ Method get_distort(const char *distort_arg)
     else
         die("METHOD must be any-of {blur, pixelate, none}", __FILE__,
             __LINE__, 20);
-    /* Unreachable code to satisfy compiler warning*/
-    return BLUR;
 }
 
 uint8_t get_blur_iter(const char *blur_arg)
