@@ -9,7 +9,7 @@ SRC_DIR     := ./src
 ## Manual CFLAGS override this Makefile
 CFLAGS_DEFAULT  := $$(pkg-config --cflags fontconfig imlib2 x11 xrandr)       \
                    -I$(SRC_DIR)/include                                       \
-                   -std=gnu99 -O2 -Wall -Wextra -Wconversion -Wshadow         \
+                   -std=gnu11 -O2 -Wall -Wextra -Wconversion -Wshadow         \
                    -Wmissing-prototypes -Wmissing-declarations                \
                    -Wpointer-arith -Wwrite-strings -Wcast-qual                \
                    -Wbad-function-cast -Wformat-security -Wcast-align         \

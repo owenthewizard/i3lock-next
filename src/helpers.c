@@ -128,7 +128,7 @@ void add_radius_to_args(char *args, const int lock_w, const int lock_h)
     sprintf(args + strlen(args), "--radius=%"PRIu8" ", radius);
 }
 
-void die(const char *message, const char *file, const int line,
+noreturn void die(const char *message, const char *file, const int line,
          const uint8_t code)
 {
     fprintf(stderr, "i3lock-next:%s:%d: error: %s\n", file, line, message);
