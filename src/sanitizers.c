@@ -18,11 +18,11 @@
 #include <inttypes.h>
 #include <string.h>
 
-float get_gamma(const char *gamma_arg)
+double get_gamma(const char *gamma_arg)
 {
     errno = 0;
     D_PRINTF("Gamma arg: %s\n", gamma_arg);
-    return (gamma_arg)? strtof(gamma_arg, NULL) : (float) DEFAULT_GAMMA;
+    return (gamma_arg)? strtod(gamma_arg, NULL) : DEFAULT_GAMMA;
 }
 
 int8_t get_threshold(const char *threshold_arg)

@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-float get_gamma(const char*);
+double get_gamma(const char*);
 
 int8_t get_threshold(const char*);
 

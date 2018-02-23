@@ -23,7 +23,7 @@ void adjust_gamma(Imlib_Image *i, const char *gamma_arg)
 {
     imlib_context_set_image(i);
 
-    float gamma = get_gamma(gamma_arg);
+    double gamma = get_gamma(gamma_arg);
     warn_if_errno("gamma", __FILE__, __LINE__);
     D_PRINTF("Gamma set to %.2f\n", gamma);
 
