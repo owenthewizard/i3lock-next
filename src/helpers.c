@@ -91,24 +91,27 @@ int get_monitor_count(Display *d, const Window w)
    on `command` results in an empty string
    
    however, add_radius_to_args() is fine */
+// yuck takes care of this
+/*
 void add_args_to_command(char **argv, const int argc, char **command)
 {
-    /* don't pass arguments before "--" */
+    // don't pass arguments before "--"
     size_t i = 0;
-    /* dangerous cast? */
+    // dangerous cast?
     while (strcmp(*(argv + i), "--") != 0 && i < (unsigned) (argc - 1))
         i++;
-    /* pass arguments, starting at argv[i+1] */
+    // pass arguments, starting at argv[i+1]
     while (++i < (unsigned) argc)
     {
-        /* X chars for argv[i] + 1 chars for " " */
-        /* space for "\0" already allocated */
+        // X chars for argv[i] + 1 chars for " "
+        // space for "\0" already allocated
         *command = realloc(*command, sizeof(char) * (strlen(*command)
                                  + strlen(*(argv + i))
                                  + 1));
         sprintf(*command + strlen(*command), "%s ", *(argv + i));
     }
 }
+*/
 
 void add_radius_to_args(char *args, const int lock_w, const int lock_h)
 {

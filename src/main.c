@@ -124,7 +124,15 @@ int main(int argc, char **argv)
     strcpy(i3lock, "i3lock ");
 
     add_radius_to_args(i3lock, lock_w, lock_h);
-    add_args_to_command(argv, argc, &i3lock);
+    //add_args_to_command(argv, argc, &i3lock);
+    for (size_t i = 0; i < argp->nargs; i++)
+    {
+        D_PRINTF("Found i3lock arg: %s\n", *(argp->args + i));
+        i3lock = realloc(i3lock, sizeof(char) * (strlen(i3lock)
+                                              + strlen(*(argp->args + i))
+                                              + 1));
+        sprintf(i3lock + strlen(i3lock), "%s ", *(argp->args + i));
+    }
 
     /* 3 chars for "-i " + X chars for file_name */
     /* space for "\0" already allocated */
