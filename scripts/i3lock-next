@@ -76,10 +76,6 @@ font = '%s/%d' % (font, size)
 color = run([helper, image, font, lock_path_dark, lock_path_light, prompt], stdout=PIPE)
 color = color.stdout.decode(getdefaultencoding())
 
-# get image size
-with open(image, 'rb') as image_file:
-    w, h = unpack('>LL', image_file.read()[16:24])
-
 # get lock size and other color
 if color == 'FFFFFFFF':
     lock = 'lock-light'
@@ -102,17 +98,16 @@ color = color.rstrip()
 font_i3lock = font_i3lock.rstrip()
 other_color = other_color.rstrip()
 
-offset_x = config['Clock'].getint('OffsetX')
-offset_y = config['Clock'].getint('OffsetY')
+offset_x = config['Clock'].get('OffsetX')
+offset_y = config['Clock'].get('OffsetY')
 
-clock_pos = {'TopLeft': '%d:%d' % (offset_x, offset_y),
-             'TopCenter': '%d-cw/2:%d' % (w / 2 + offset_x, offset_y),
-             'TopRight': '%d-cw:%d' % (w + offset_x, offset_y),
-             'BottomLeft': '%d:%d-ch' % (offset_x, h + offset_y),
-             'BottomCenter': '%d-cw/2:%d-ch' % (w / 2 + offset_x,
-                 h + offset_y),
-             'BottomRight': '%d-cw:%d-ch' % (w + offset_x, h + offset_y),
-             'Index': 'ix-cw/2:iy+%d/2' % (lock_h / 2)
+clock_pos = {'TopLeft': 'x+ix/4+%s:y+iy/4+%s' % (offset_x, offset_y),
+             'TopCenter': 'ix+%s:iy/4+%s' % (offset_x, offset_y),
+             'TopRight': 'w-ix/4+%s:y+iy/4+%s' % (offset_x, offset_y),
+             'BottomLeft': 'x+ix/4+%s:h-iy/4+%s' % (offset_x, offset_y),
+             'BottomCenter': 'ix+%s:h-iy/4+%s' % (offset_x, offset_y),
+             'BottomRight': 'w-ix/4+%s:h-iy/4+%s' % (offset_x, offset_y),
+             'Index': 'ix+%s:iy+%s' % (offset_x, offset_y)
              }
 
 # construct i3lock command including optional parts
@@ -127,13 +122,14 @@ if config['Options'].getboolean('ShowClock'):
     _ = clock_pos[config['Clock']['Pos']]
     i3lock_command.append('--timepos=%s' % (_))
     i3lock_command.append('--timecolor=%s' % (color))
-    i3lock_command.append('--timefont=%s' % (font_i3lock))
+    i3lock_command.append('--time-font=%s' % (font_i3lock))
     i3lock_command.append('--timesize=%d' % (size * 2))
     i3lock_command.append('--datecolor=%s' % (color))
-    i3lock_command.append('--datefont=%s' % (font_i3lock))
+    i3lock_command.append('--date-font=%s' % (font_i3lock))
     i3lock_command.append('--datesize=%d' % (size))
 
-i3lock_command_ext = ['--textcolor=00000000', '--linecolor=00000000',
+i3lock_command_ext = ['--layoutcolor=00000000', '--linecolor=00000000',
+                      '--verifcolor=00000000', '--wrongcolor=00000000',
                       '--keyhlcolor=%s80' % (color[:-2]),
                       '--separatorcolor=22222260',
                       '--insidecolor=%s1c' % (color[:-2]),
