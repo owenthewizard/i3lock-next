@@ -183,7 +183,7 @@ int main(int argc, const char **argv)
 
     if (!im)
     {
-        // coudln't take screenshot
+        // couldn't take screenshot
         fprintf(stderr, "%s %s\n", i3lockerr, screenshoterr);
         XFree(disp);
         return 3;
