@@ -1,3 +1,7 @@
+# This project has been succeeded by [i3lockr](https://github.com/owenthewizard/i3lockr)
+
+<hr>
+
 # i3lock-next
 
 `i3lock-next` is a Python 3 script and C helper program much like [i3lock-fancy](https://github.com/meskarune/i3lock-fancy). i3lock-next aims to be much faster by using [Imlib2](https://docs.enlightenment.org/api/imlib2/html/index.html) rather than ImageMagick, and being written (mostly) in C.
